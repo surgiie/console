@@ -48,7 +48,7 @@ class ExampleCommand extends Command
 {
     use WithValidation;
 
-    protected $signature = "example {--iterations=}"
+    protected $signature = "example {--iterations=}";
 
     public function rules()
     {
