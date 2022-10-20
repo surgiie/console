@@ -10,7 +10,6 @@ A base command and set of useful support trait/classes for [Laravel](https://lar
 ## Features
 
 
-
 ### Merged Data
 
 All arguments and options are merged into a single `$this->data` collection, giving a fluent object to pull and work with option/arg data.
