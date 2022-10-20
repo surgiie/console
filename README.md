@@ -4,8 +4,9 @@ A base command and set of useful support trait/classes for [Laravel](https://lar
 
 ## Installation
 
-`composer require surgiie/console`
-
+```bash
+composer require surgiie/console
+```
 
 ## Features
 
