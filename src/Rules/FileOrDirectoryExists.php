@@ -4,10 +4,10 @@ namespace Surgiie\Console\Rules;
 
 use Illuminate\Contracts\Validation\InvokableRule;
 
-class FileMustNotExist implements InvokableRule
+class FileOrDirectoryExists implements InvokableRule
 {
     /**The error message. */
-    protected string $error = 'The :name :type file path already exists.';
+    protected string $error = 'The :name :type file or directory does not exist.';
 
     /**Construct new Rule instance.*/
     public function __construct(?string $error = null)
@@ -27,7 +27,7 @@ class FileMustNotExist implements InvokableRule
      */
     public function __invoke($attribute, $value, $fail)
     {
-        if (is_file($value)) {
+        if (! file_exists($value)) {
             $fail($this->error);
         }
     }
