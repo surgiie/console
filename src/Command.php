@@ -173,8 +173,8 @@ abstract class Command extends BaseCommand
             $definition = $this->getDefinition();
 
             foreach ($parser->parse() as $name => $data) {
-                $this->arbitraryData->put($name, $data['value']);
                 if (! $definition->hasOption($name)) {
+                    $this->arbitraryData->put($name, $data['value']);
                     $this->addOption($name, mode: $data['mode']);
                 }
             }
