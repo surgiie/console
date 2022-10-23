@@ -2,7 +2,7 @@
 
 ## [Unreleased](https://github.com/surgiie/console/compare/v0.3.2...master)
 
-## [v0.3.2](https://github.com/surgiie/console/compare/v0.3.0...v0.3.2) - 2022-10-22
+## [v0.3.2](https://github.com/surgiie/console/compare/v0.3.1...v0.3.2) - 2022-10-22
 
 ### Changed
 
