@@ -241,7 +241,7 @@ public function handle()
 
 ### Run Task With Spinner/Loader
 
-**Note** - This requires terminal to support escape sequence and the PCNTL extenion is required.
+**Note** - This requires terminal to support escape sequence and the PCNTL extenion is required. When running on windows or the extension is not enabled, will attempt to fallback to the `task` function as provided by `nunomaduro/laravel-console-task`.
 
 ```php
 
