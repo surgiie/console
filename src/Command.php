@@ -24,7 +24,6 @@ use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Process\Process;
 use function Termwind\render;
 use function Termwind\renderUsing;
-use function Termwind\{ask};
 
 if (class_exists(LaravelZeroCommand::class)) {
     abstract class BaseCommand extends LaravelZeroCommand
@@ -60,7 +59,7 @@ abstract class Command extends BaseCommand
 
     public function __set(string $name, mixed $value)
     {
-        // prevent depecration notice in 8.2.
+        // prevent depecration notice in 8.2 for dynamic properties.
     }
 
     /**Get the console components instance.*/
@@ -110,8 +109,11 @@ abstract class Command extends BaseCommand
     }
 
     /**Run a new command task.*/
-    public function runTask(string $title = '', $task = null): CommandTask
+    public function runTask(string $title = '', $task = null)
     {
+        if (! extension_loaded('pcntl')) {
+            return $this->task($title, $task);
+        }
         $task = (new CommandTask($title, $this, $task));
 
         $task->run();
