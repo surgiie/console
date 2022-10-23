@@ -275,7 +275,9 @@ abstract class Command extends BaseCommand
         // merge the data together.
         $data = (new DataTransformer(array_merge($this->arguments(), $this->options()), ['*date*' => ['?', Carbon::class]]))->transform();
 
-        $this->data = collect($data);
+        $this->data = collect($data)->filter(function ($v) {
+            return ! is_null($v);
+        });
 
         // transform the data before validation
         if ($withTransformers = $this->classUsesTrait($this, WithTransformers::class) && $transformers = $this->transformers()) {
