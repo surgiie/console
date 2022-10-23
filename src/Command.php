@@ -215,17 +215,17 @@ abstract class Command extends BaseCommand
 
         $message = "Enter $label:";
 
-        $this->lineMessage('INPUT', $message, fg: 'white', bg: 'green');
+        $this->message('INPUT', $message, fg: 'white', bg: 'green');
         $input = $this->$method('ctrl-c to exit');
 
         $validate($input);
 
         if ($confirm) {
-            $this->lineMessage('CONFIRM INPUT', "Confirm $label", fg: 'black', bg: 'cyan');
+            $this->message('CONFIRM INPUT', "Confirm $label", fg: 'black', bg: 'cyan');
             $confirmInput = $this->$method('ctrl-c to exit');
 
             while ($input != $confirmInput) {
-                $this->lineMessage('CONFIRM FAILED', "Try $label confirmation again", fg: 'white', bg: 'red');
+                $this->message('CONFIRM FAILED', "Try $label confirmation again", fg: 'white', bg: 'red');
                 $confirmInput = $this->$method('ctrl-c to exit');
             }
         }
@@ -325,7 +325,7 @@ abstract class Command extends BaseCommand
         // lastly show how we did if specified.
         if ($this->fromPropertyOrMethod('showPerformanceStats', false) !== false) {
             $this->newLine();
-            $this->lineMessage(
+            $this->message(
                 'Peformance',
                 'Memory: '.$this->getMemoryUsage().'|Execution Time: '.number_format($ms, 2, thousands_separator: '').'ms',
                 bg: 'cyan'
