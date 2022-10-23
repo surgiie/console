@@ -170,14 +170,16 @@ abstract class Command extends BaseCommand
         if ($this->fromPropertyOrMethod('arbitraryOptions', false)) {
             global $argv;
             $parser = new OptionsParser($argv);
+            $definition = $this->getDefinition();
 
             foreach ($parser->parse() as $name => $data) {
-                $this->arbitraryData->put($name, $data['value']);
-                $this->addOption($name, mode: $data['mode']);
+                if (! $definition->hasOption($name)) {
+                    $this->arbitraryData->put($name, $data['value']);
+                    $this->addOption($name, mode: $data['mode']);
+                }
             }
-
             //rebind input definition
-            $input->bind($this->getDefinition());
+            $input->bind($definition);
         }
     }
 

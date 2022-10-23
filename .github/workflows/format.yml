@@ -1,10 +1,10 @@
 name: Format
 on:
-  pull_request:
+  push:
     branches:
       - "master"
     paths:
-      - "src/*"
+      - "src/**"
 jobs:
   format:
     runs-on: ubuntu-latest
