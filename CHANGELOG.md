@@ -8,9 +8,6 @@
 
 - Fix typo/lang redundancy in `LoadsEnvFiles` and `LoadsJsonFiles` traits by @surgiie in https://github.com/surgiie/console/pull/2
 
-### Changed
-
-- Fix typo/lang redundancy in `LoadsEnvFiles` and `LoadsJsonFiles` traits by @surgiie in https://github.com/surgiie/console/pull/2
 ## [v0.3.0](https://github.com/surgiie/console/compare/v0.2.0...v0.3.0) - 2022-10-22
 
 ### Changed
