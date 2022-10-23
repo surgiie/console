@@ -1,8 +1,12 @@
 # Release Notes
 
-## [Unreleased](https://github.com/surgiie/console/compare/v0.4.0...master)
+## [Unreleased](https://github.com/surgiie/console/compare/v0.3.1...master)
 
-## [v0.4.0](https://github.com/surgiie/console/compare/v0.3.0...v0.4.0) - 2022-10-22
+## [v0.3.1](https://github.com/surgiie/console/compare/v0.3.0...v0.3.1) - 2022-10-22
+
+### Changed
+
+- Fix typo/lang redundancy in `LoadsEnvFiles` and `LoadsJsonFiles` traits by @surgiie in https://github.com/surgiie/console/pull/2
 
 ### Changed
 
