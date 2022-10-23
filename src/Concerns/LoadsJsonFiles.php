@@ -34,7 +34,7 @@ trait LoadsJsonFiles
     public function loadJsonFile(string $path): array
     {
         if (! is_file($path)) {
-            throw new InvalidArgumentException("The json file '$path' file does not exist.");
+            throw new InvalidArgumentException("The json file '$path' does not exist.");
         }
 
         $data = json_decode(file_get_contents($path), JSON_OBJECT_AS_ARRAY);
