@@ -2,6 +2,7 @@
 
 namespace Surgiie\Console;
 
+use BadMethodCallException;
 use Carbon\Carbon;
 use Closure;
 use Illuminate\Console\Command as LaravelCommand;
@@ -24,7 +25,6 @@ use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Process\Process;
 use function Termwind\render;
 use function Termwind\renderUsing;
-use function Termwind\{ask};
 
 if (class_exists(LaravelZeroCommand::class)) {
     abstract class BaseCommand extends LaravelZeroCommand
@@ -60,7 +60,7 @@ abstract class Command extends BaseCommand
 
     public function __set(string $name, mixed $value)
     {
-        // prevent depecration notice in 8.2.
+        // prevent depecration notice in 8.2 for dynamic properties.
     }
 
     /**Get the console components instance.*/
@@ -110,8 +110,15 @@ abstract class Command extends BaseCommand
     }
 
     /**Run a new command task.*/
-    public function runTask(string $title = '', $task = null): CommandTask
+    public function runTask(string $title = '', $task = null)
     {
+        if (! extension_loaded('pcntl')) {
+            if (! method_exists($this, 'task')) {
+                throw new BadMethodCallException('runTask relies on nunomaduro/laravel-console-task when running on windows.');
+            }
+
+            return $this->task($title, $task);
+        }
         $task = (new CommandTask($title, $this, $task));
 
         $task->run();
