@@ -18,6 +18,7 @@ use Surgiie\Blade\Blade;
 use Surgiie\Console\Concerns\FromPropertyOrMethod;
 use Surgiie\Console\Concerns\WithTransformers;
 use Surgiie\Console\Concerns\WithValidation;
+use Surgiie\Console\Exceptions\ExitCommandException;
 use Surgiie\Console\Exceptions\FailedRequirementException;
 use Surgiie\Transformer\DataTransformer;
 use Symfony\Component\Console\Input\InputInterface;
@@ -83,7 +84,7 @@ abstract class Command extends BaseCommand
         if ($error) {
             $this->components->{$level}($error);
         }
-        exit($code);
+        throw new ExitCommandException($error, $code);
     }
 
     /**
@@ -268,71 +269,75 @@ abstract class Command extends BaseCommand
      */
     protected function execute(InputInterface $input, OutputInterface $output)
     {
-        $status = 0;
+        try {
+            $status = 0;
 
-        // check requirements as defined by developer
-        foreach ($this->fromPropertyOrMethod('requirements', []) as $requirement) {
-            try {
-                $this->checkRequirement($requirement);
-            } catch (FailedRequirementException $e) {
-                $this->exit($e->getMessage());
-            }
-        }
-
-        // merge the data together.
-        $data = (new DataTransformer(array_merge($this->arguments(), $this->options()), ['*date*' => ['?', Carbon::class]]))->transform();
-
-        $this->data = collect($data)->filter(function ($v) {
-            return ! is_null($v);
-        });
-
-        // transform the data before validation
-        if ($withTransformers = $this->classUsesTrait($this, WithTransformers::class) && $transformers = $this->transformers()) {
-            $this->data = collect(
-                $this->transformData($this->data->all(), $transformers)
-            );
-        }
-
-        // validate
-        $this->validate();
-
-        // post validation transformation
-        if ($withTransformers && $transformers = $this->transformersAfterValidation()) {
-            $this->data = collect(
-                $this->transformData($this->data->all(), $transformers)
-            );
-        }
-
-        // separate the arbitraryData from main.
-        if ($this->fromPropertyOrMethod('arbitraryOptions', false)) {
-            $this->data = $this->data->filter(function ($value, $name) {
-                $isArbitrary = $this->arbitraryData->has($name);
-
-                // update the value in case it has gone through transformation
-                if ($isArbitrary) {
-                    $this->arbitraryData->put($name, $value);
+            // check requirements as defined by developer
+            foreach ($this->fromPropertyOrMethod('requirements', []) as $requirement) {
+                try {
+                    $this->checkRequirement($requirement);
+                } catch (FailedRequirementException $e) {
+                    $this->exit($e->getMessage());
                 }
+            }
 
-                return ! $isArbitrary;
+            // merge the data together.
+            $data = (new DataTransformer(array_merge($this->arguments(), $this->options()), ['*date*' => ['?', Carbon::class]]))->transform();
+
+            $this->data = collect($data)->filter(function ($v) {
+                return ! is_null($v);
             });
+
+            // transform the data before validation
+            if ($withTransformers = $this->classUsesTrait($this, WithTransformers::class) && $transformers = $this->transformers()) {
+                $this->data = collect(
+                    $this->transformData($this->data->all(), $transformers)
+                );
+            }
+
+            // validate
+            $this->validate();
+
+            // post validation transformation
+            if ($withTransformers && $transformers = $this->transformersAfterValidation()) {
+                $this->data = collect(
+                    $this->transformData($this->data->all(), $transformers)
+                );
+            }
+
+            // separate the arbitraryData from main.
+            if ($this->fromPropertyOrMethod('arbitraryOptions', false)) {
+                $this->data = $this->data->filter(function ($value, $name) {
+                    $isArbitrary = $this->arbitraryData->has($name);
+
+                    // update the value in case it has gone through transformation
+                    if ($isArbitrary) {
+                        $this->arbitraryData->put($name, $value);
+                    }
+
+                    return ! $isArbitrary;
+                });
+            }
+
+            // run the command
+            $ms = Benchmark::measure(function () use (&$status) {
+                $status = $this->executeCommand();
+            });
+
+            // lastly show how we did if specified.
+            if ($this->fromPropertyOrMethod('showPerformanceStats', false) !== false) {
+                $this->newLine();
+                $this->message(
+                    'Peformance',
+                    'Memory: '.$this->getMemoryUsage().'|Execution Time: '.number_format($ms, 2, thousands_separator: '').'ms',
+                    bg: 'cyan'
+                );
+            }
+
+            return $status;
+        } catch (ExitCommandException $e) {
+            return $e->getStatus();
         }
-
-        // run the command
-        $ms = Benchmark::measure(function () use (&$status) {
-            $status = $this->executeCommand();
-        });
-
-        // lastly show how we did if specified.
-        if ($this->fromPropertyOrMethod('showPerformanceStats', false) !== false) {
-            $this->newLine();
-            $this->message(
-                'Peformance',
-                'Memory: '.$this->getMemoryUsage().'|Execution Time: '.number_format($ms, 2, thousands_separator: '').'ms',
-                bg: 'cyan'
-            );
-        }
-
-        return $status;
     }
 
     /**
@@ -364,6 +369,7 @@ abstract class Command extends BaseCommand
 
             if ($validator->fails()) {
                 $this->displayValidationErrors($validator);
+                $this->exit();
             }
         }
     }
@@ -381,11 +387,8 @@ abstract class Command extends BaseCommand
                 $name = $isOption ? '--'.$name : $name;
                 $type = $isOption ? 'option' : 'argument';
             }
-
             $this->components->error(str_replace([':name', ':type'], [$name, $type], $errors[0]));
         }
-
-        $this->exit();
     }
 
     /**
