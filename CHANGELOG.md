@@ -5,7 +5,8 @@
 
 ## [v0.4.0](https://github.com/surgiie/console/compare/v0.3.5...v0.4.0) - 2022-10-24
 ### Changed
-`$this->clearTerminalLine()` outputs empty line when escape sequence is not supported by @surgiie https://github.com/surgiie/console/pull/7
+- `$this->clearTerminalLine()` outputs empty line when escape sequence is not supported by @surgiie https://github.com/surgiie/console/pull/7
+- lang changes in default error for `FileMustNotExist` and `FileExists rule by @surgiie https://github.com/surgiie/console/pull/7
 ### Added
 
 - Adds a new `BackupCommandTask` for when pctnl extension is not enabled by @surgiie in https://github.com/surgiie/console/pull/7
