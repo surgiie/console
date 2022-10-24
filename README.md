@@ -241,19 +241,26 @@ public function handle()
 
 ### Run Task With Spinner/Loader
 
-**Note** - This requires terminal to support escape sequence and the PCNTL extenion is required. When running on windows or the extension is not enabled, will attempt to fallback to the `task` function as provided by `nunomaduro/laravel-console-task`.
+**Note** - This requires terminal to support escape sequence and the PCNTL extenion. When running on windows or the extension is not enabled, this will attempt to fallback to the `task` function as provided by `nunomaduro/laravel-console-task`, this requires that you check if the given `$task` variable is an instance of `CommandTask`
 
 ```php
 
 $task = $this->runTask("Doing stuff...", function($task){
-    // command()->line() should be called for every new line so it doesnt interfere with the "loading/live text".
-    $task->command()->line("Did something");
+    // pcntl is installed:
+    if($task instanceof CommandTask){
+        // command()->line() should be called for every new line so it doesnt interfere with the "loading/live text".
+        $task->command()->line("Did something");
 
-    sleep(4); // simulating stuff.
+        sleep(4); // simulating stuff.
 
-    $task->command()->line("Did something else");
+        $task->command()->line("Did something else");
 
-    return true; // return whether task succeeded or not.
+        return true; // return whether task succeeded or not.
+    }else{
+        // if supporting windows or not enforcing pcntl:
+        $this->line("Did something");
+    }
+   
 });
 
 if($task->succesful()){
