@@ -1,7 +1,7 @@
 # Release Notes
 
 ## [Unreleased](https://github.com/surgiie/console/compare/v0.3.5...master)
-## [v0.3.5](https://github.com/surgiie/console/compare/v0.3.4...v0.3.5) - 2022-10-23
+## [v0.3.5](https://github.com/surgiie/console/compare/v0.3.4...v0.3.5) - 2022-10-24
 ### Changed
 `$this->exit` now throws new `ExitCommandException` instead of calling `exit` by @surgiie https://github.com/surgiie/console/pull/6
 ### Added
