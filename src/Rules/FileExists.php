@@ -7,7 +7,7 @@ use Illuminate\Contracts\Validation\InvokableRule;
 class FileExists implements InvokableRule
 {
     /**The error message. */
-    protected string $error = 'The :name :type file does not exist.';
+    protected string $error = 'The :name :type does not exist.';
 
     /**Construct new Rule instance.*/
     public function __construct(?string $error = null)

@@ -7,7 +7,7 @@ use Illuminate\Contracts\Validation\InvokableRule;
 class FileMustNotExist implements InvokableRule
 {
     /**The error message. */
-    protected string $error = 'The :name :type file path already exists.';
+    protected string $error = 'The :name :type already exists.';
 
     /**Construct new Rule instance.*/
     public function __construct(?string $error = null)

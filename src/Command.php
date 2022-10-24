@@ -2,7 +2,6 @@
 
 namespace Surgiie\Console;
 
-use BadMethodCallException;
 use Carbon\Carbon;
 use Closure;
 use Illuminate\Console\Command as LaravelCommand;
@@ -114,13 +113,10 @@ abstract class Command extends BaseCommand
     public function runTask(string $title = '', $task = null)
     {
         if (! extension_loaded('pcntl')) {
-            if (! method_exists($this, 'task')) {
-                throw new BadMethodCallException('runTask relies on nunomaduro/laravel-console-task when running on windows.');
-            }
-
-            return $this->task($title, $task);
+            $task = (new BackupCommandTask($title, $this, $task));
+        } else {
+            $task = (new CommandTask($title, $this, $task));
         }
-        $task = (new CommandTask($title, $this, $task));
 
         $task->run();
 
@@ -294,7 +290,6 @@ abstract class Command extends BaseCommand
                     $this->transformData($this->data->all(), $transformers)
                 );
             }
-
             // validate
             $this->validate();
 
@@ -387,6 +382,7 @@ abstract class Command extends BaseCommand
                 $name = $isOption ? '--'.$name : $name;
                 $type = $isOption ? 'option' : 'argument';
             }
+
             $this->components->error(str_replace([':name', ':type'], [$name, $type], $errors[0]));
         }
     }
