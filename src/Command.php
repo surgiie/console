@@ -9,7 +9,6 @@ use Illuminate\Console\Contracts\NewLineAware;
 use Illuminate\Filesystem\Filesystem;
 use Illuminate\Support\Benchmark;
 use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\App;
 use Illuminate\Validation\Validator;
 use InvalidArgumentException;
 use LaravelZero\Framework\Commands\Command as LaravelZeroCommand;
@@ -46,6 +45,9 @@ abstract class Command extends BaseCommand
     /**The data that was arbitrary.*/
     protected Collection $arbitraryData;
 
+    /**Dynamic "properties".*/
+    protected array $properties = [];
+
     /**Construct a new Command instance.*/
     public function __construct()
     {
@@ -56,11 +58,6 @@ abstract class Command extends BaseCommand
 
             $this->ignoreValidationErrors();
         }
-    }
-
-    public function __set(string $name, mixed $value)
-    {
-        // prevent depecration notice in 8.2 for dynamic properties.
     }
 
     /**Get the console components instance.*/
@@ -123,14 +120,20 @@ abstract class Command extends BaseCommand
         return $task;
     }
 
-    /**Get a property or create it using the given callback. */
-    protected function getProperty($property, Closure $createWith)
+    /**Get a property or create it in our properties array using the given callback. */
+    public function getProperty(string $property, ?Closure $createWith = null)
     {
-        if (! property_exists($this, $property)) {
-            return $this->$property = $createWith();
+        if (! $this->hasProperty($property)) {
+            return  $this->properties[$property] = $createWith();
         }
 
-        return $this->$property;
+        return $this->properties[$property] ?? null;
+    }
+
+    /**Get a property or create it in our properties array using the given callback. */
+    public function hasProperty(string $property)
+    {
+        return array_key_exists($property, $this->properties);
     }
 
     /**Return a new blade instance.*/
@@ -166,14 +169,33 @@ abstract class Command extends BaseCommand
         $this->message('DEBUG', $message, 'gray', 'white');
     }
 
+    /**Return data from merged data collection. */
+    public function getData(?string $key = null, $default = null)
+    {
+        if (is_null($key)) {
+            return $this->data;
+        }
+
+        return $this->data->get($key, $default);
+    }
+
+    /**Return data from arbitrary data collection. */
+    public function getArbitraryData(?string $key = null, $default = null)
+    {
+        if (is_null($key)) {
+            return $this->arbitraryData;
+        }
+
+        return $this->arbitraryData->get($key, $default);
+    }
+
     /**
      * Initialize command.
      */
     protected function initialize(InputInterface $input, OutputInterface $output): void
     {
         if ($this->fromPropertyOrMethod('arbitraryOptions', false)) {
-            global $argv;
-            $parser = new OptionsParser($argv);
+            $parser = new OptionsParser(invade($input)->tokens);
             $definition = $this->getDefinition();
 
             foreach ($parser->parse() as $name => $data) {
@@ -241,10 +263,10 @@ abstract class Command extends BaseCommand
         if (is_callable($requirement)) {
             $error = $requirement();
         } elseif ($isString && method_exists($this, $requirement)) {
-            $error = App::call([$this, $requirement]);
+            $error = $this->laravel->call([$this, $requirement]);
         } elseif ($isString && class_exists($requirement)) {
-            $instance = app($requirement);
-            $error = App::call($instance);
+            $instance = $this->laravel->make($requirement);
+            $error = $this->laravel->call($instance);
         } elseif ($isString) {
             $process = (new Process(['which', $requirement]));
 
@@ -279,7 +301,6 @@ abstract class Command extends BaseCommand
 
             // merge the data together.
             $data = (new DataTransformer(array_merge($this->arguments(), $this->options()), ['*date*' => ['?', Carbon::class]]))->transform();
-
             $this->data = collect($data)->filter(function ($v) {
                 return ! is_null($v);
             });
@@ -382,7 +403,6 @@ abstract class Command extends BaseCommand
                 $name = $isOption ? '--'.$name : $name;
                 $type = $isOption ? 'option' : 'argument';
             }
-
             $this->components->error(str_replace([':name', ':type'], [$name, $type], $errors[0]));
         }
     }

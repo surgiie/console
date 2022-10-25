@@ -1,7 +1,16 @@
 # Release Notes
 
-## [Unreleased](https://github.com/surgiie/console/compare/v0.4.0...master)
+## [Unreleased](https://github.com/surgiie/console/compare/v0.5.0...master)
 
+## [v0.5.0](https://github.com/surgiie/console/compare/v0.4.0...v0.5.0) - 2022-10-24
+### Changed
+- `getProperty` uses a new *defined* array property called properties by @surgiie https://github.com/surgiie/console/pull/8
+- `getProperty` callback is now nullable by default, return false if not set @surgiie https://github.com/surgiie/console/pull/8
+- `validator` function uses `en` for locale, can be customized via new `getValidationLangLocal` in `WithValidation` trait. @surgiie https://github.com/surgiie/console/pull/8
+
+### Added
+- `getData` for getting data from `$this->data` by @surgiie https://github.com/surgiie/console/pull/8
+- `validator` lang can be customized via new `getValidationLangLocal` in `WithValidation` trait. @surgiie https://github.com/surgiie/console/pull/8
 
 ## [v0.4.0](https://github.com/surgiie/console/compare/v0.3.5...v0.4.0) - 2022-10-24
 ### Changed

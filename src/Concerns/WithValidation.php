@@ -17,18 +17,22 @@ trait WithValidation
         return realpath(__DIR__.'/../resources/lang');
     }
 
+    /**Get locale to use for validation lang.*/
+    protected function getValidationLangLocal(): string
+    {
+        return 'en';
+    }
+
     /**
      * Make a new validator using the given data.
      */
     protected function validator(array $data, ?array $rules = null, ?array $messages = null, ?array $attributes = null)
     {
-        $app = app();
-
         $loader = new FileLoader(new Filesystem, $this->getValidationLangPath());
 
-        $translator = new Translator($loader, $app->currentLocale() ?? 'en');
+        $translator = new Translator($loader, $this->getValidationLangLocal());
 
-        $factory = new ValidatorFactory($translator, $app);
+        $factory = new ValidatorFactory($translator, $this->laravel);
 
         return $factory->make(
             $data,

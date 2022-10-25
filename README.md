@@ -32,6 +32,18 @@ class ExampleCommand extends Command
 }
 
 ```
+
+### Store Values for performance
+
+Helpful for caching instances into a property if going to be called repeatedly.
+```php
+
+protected function example()
+{
+    // get a property or store it if it doesnt exist
+    return $this->getProperty('example', fn () => new Example);
+}
+```
 ### Validation
 
 Utilize Laravel Validation for Arguments & Options
