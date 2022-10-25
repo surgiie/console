@@ -41,7 +41,7 @@ uses(TestCase::class)->in(__DIR__);
 | global functions to help you to reduce the number of lines of code in your test files.
 |
 */
-// simulate the app laravel helper.
+// simulate the helpers used in code
 function app($key = null)
 {
     $container = new Container;
@@ -50,4 +50,11 @@ function app($key = null)
     }
 
     return $container;
+}
+
+function base_path(string $path = '')
+{
+    $base = realpath(__DIR__.'/../');
+
+    return $base.$path;
 }

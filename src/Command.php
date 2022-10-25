@@ -233,7 +233,6 @@ abstract class Command extends BaseCommand
         $label = str_replace(['_', '-'], [' ', ' '], $name);
 
         $message = "Enter $label:";
-
         $this->message('INPUT', $message, fg: 'white', bg: 'green');
         $input = $this->$method('ctrl-c to exit');
 
@@ -260,6 +259,7 @@ abstract class Command extends BaseCommand
     protected function checkRequirement($requirement)
     {
         $isString = is_string($requirement);
+
         if (is_callable($requirement)) {
             $error = $requirement();
         } elseif ($isString && method_exists($this, $requirement)) {
@@ -359,7 +359,7 @@ abstract class Command extends BaseCommand
     /**
      * Get memory usage bytes into a more human friendly label.
      */
-    protected function getMemoryUsage()
+    public function getMemoryUsage()
     {
         $bytes = memory_get_usage();
         $labels = [

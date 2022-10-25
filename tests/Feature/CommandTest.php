@@ -1,5 +1,6 @@
 <?php
 
+use Illuminate\Console\OutputStyle;
 use Illuminate\Container\Container;
 use Mockery as m;
 use Surgiie\Console\Command as ConsoleCommand;
@@ -13,9 +14,7 @@ beforeEach(function () {
     $this->container = new Container;
 });
 
-afterEach(fn () => m::close());
-
-it('it validates options and arguments', function () {
+it('validates options and arguments', function () {
     $command = new class extends ConsoleCommand
     {
         use WithValidation;
@@ -42,7 +41,9 @@ it('it validates options and arguments', function () {
         '--dooms-day' => 'not-a-date',
     ]);
 
-    $command->run($input, $output);
+    $status = $command->run($input, $output);
+    expect($status)->toBe(1);
+
     $commandOutput = $output->fetch();
     $this->assertStringContainsString(
         'ERROR  The foo argument must be at least 4 characters.',
@@ -55,7 +56,7 @@ it('it validates options and arguments', function () {
     );
 });
 
-it('it can have arbitrary options', function () {
+it('can have arbitrary options', function () {
     $command = new class extends ConsoleCommand
     {
         protected $signature = 'example {--a=}{--b=}';
@@ -85,4 +86,27 @@ it('it can have arbitrary options', function () {
 
     expect($command->getData()->all())->toBe(['a' => '1', 'b' => '2']);
     expect($command->getArbitraryData()->all())->toBe(['c' => '3', 'd' => '4']);
+});
+
+it('can ask for input if option or argument is not set.', function () {
+    $command = new class extends ConsoleCommand
+    {
+        protected $signature = 'example {--foo=}';
+
+        public function handle()
+        {
+            $this->getOrAskForInput('foo', confirm: false);
+        }
+    };
+
+    $input = new ArrayInput([]);
+    $output = m::mock(OutputStyle::class.'[ask]', [$input, new BufferedOutput]);
+
+    $command = new $command;
+    $command->setLaravel($this->container);
+    $command->setOutput($output);
+
+    $output->shouldReceive('ask')->once()->andReturn('Bar');
+
+    $command->run($input, $output);
 });
