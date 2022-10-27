@@ -2,31 +2,11 @@
 
 namespace Surgiie\Console;
 
-use Closure;
-use Illuminate\Console\OutputStyle;
-use Illuminate\Support\Str;
 use Spatie\Fork\Fork;
+use Surgiie\Console\Support\Task;
 
-class CommandTask
+class CommandTask extends Task
 {
-    /**The title of the task.*/
-    protected string $title;
-
-    /** The command running this task. */
-    protected Command $command;
-
-    /**The task function we are executing.*/
-    protected Closure $callback;
-
-    /**The console ouptut.*/
-    protected OutputStyle $output;
-
-    /**Persisted data from task. */
-    protected $persistedData = [];
-
-    /**Whether the task was succesful.*/
-    protected bool $succesful = false;
-
     /**The spinner frames to use for spinner.*/
     protected static array $spinnerFrames = [
         '⠏',
@@ -39,52 +19,7 @@ class CommandTask
         '⡇',
     ];
 
-    public function __construct(string $title, Command $command, Closure $callback)
-    {
-        $this->title = $title;
-        $this->command = $command;
-        $this->callback = $callback;
-        $this->id = Str::uuid();
-        $this->output = $command->getConsoleOutput();
-    }
-
-    /**Set data that should persist from child process.*/
-    public function persist($data): static
-    {
-        $this->persistedData = $data;
-
-        return $this;
-    }
-
-    /**Get the persisted data.*/
-    public function getData()
-    {
-        return $this->persistedData;
-    }
-
-    /**Whether the task was successful.*/
-    public function succeeded(): bool
-    {
-        return $this->succesful;
-    }
-
-    /**Get the command instance to write a new line in task.*/
-    public function command()
-    {
-        $this->clearTerminalLine();
-
-        return $this->command;
-    }
-
-    /**Get the components instance to write a new line in task.*/
-    public function components()
-    {
-        $this->clearTerminalLine();
-
-        return $this->command->getComponents();
-    }
-
-    /**Run the task callback */
+    /**Run the task callback*/
     public function run()
     {
         $results = Fork::new()
@@ -176,18 +111,5 @@ class CommandTask
         @mkdir(dirname($path = $this->taskFilePath()), recursive: true);
 
         return touch($path);
-    }
-
-    /**Clear console line.*/
-    protected function clearTerminalLine()
-    {
-        if ($this->output->isDecorated()) {
-            // Move the cursor to the beginning of the line
-            $this->output->write("\x0D");
-            // Erase line.
-            $this->output->write("\x1B[2K");
-        } else {
-            $this->output->writeln(''); // Make sure we first close the previous line
-        }
     }
 }

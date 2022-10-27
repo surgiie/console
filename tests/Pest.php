@@ -58,3 +58,10 @@ function base_path(string $path = '')
 
     return $base.$path;
 }
+
+function test_mock_file_path(string $path = '')
+{
+    $testsPath = realpath(__DIR__);
+
+    return rtrim("$testsPath/mock/".trim($path, '/'), '/');
+}

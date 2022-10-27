@@ -152,7 +152,7 @@ abstract class Command extends BaseCommand
     }
 
     /**$this->components->line(),but with the ability to edit color/title.*/
-    protected function message(string $title, string $content, string $bg = 'gray', string $fg = 'white')
+    public function message(string $title, string $content, string $bg = 'gray', string $fg = 'white')
     {
         $this->consoleView('line', [
             'bgColor' => $bg,
@@ -239,7 +239,7 @@ abstract class Command extends BaseCommand
         $validate($input);
 
         if ($confirm) {
-            $this->message('CONFIRM INPUT', "Confirm $label", fg: 'black', bg: 'cyan');
+            $this->message('CONFIRM INPUT', "Confirm $label:", fg: 'black', bg: 'cyan');
             $confirmInput = $this->$method('ctrl-c to exit');
 
             while ($input != $confirmInput) {
@@ -247,6 +247,8 @@ abstract class Command extends BaseCommand
                 $confirmInput = $this->$method('ctrl-c to exit');
             }
         }
+
+        $this->data->put($name, $input);
 
         return $input;
     }

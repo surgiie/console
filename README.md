@@ -72,13 +72,13 @@ class ExampleCommand extends Command
     public function messages()
     {
         // custom validation messages
-        return [...];
+        return ['...'];
     }
 
     public function attributes()
     {
         // custom validation attributes
-        return [...];
+        return ['...'];
     }
 }
 ```
@@ -253,7 +253,7 @@ public function handle()
 
 ### Run Task With Spinner/Loader
 
-**Note** - This requires terminal to support escape sequence and the PCNTL extenion. `composer install --ignore-platform-reqs` maybe used if needed, code will just fallback to a basic sync task:
+Note that in order to achieve a spinner animation while running the task, 2 child PHP processes are used via [spatie/fork](https://github.com/spatie/fork), one process is for the spinner animation and one for the task function you pass in. This requires the terminal to support escape sequence and the PCNTL extenion must be installed. If you are supporting windows, `composer install --ignore-platform-reqs` maybe used if needed and the code will just fallback to a basic task that does not have a spinner.
 
 ```php
 
@@ -278,10 +278,7 @@ if($task->succesful()){
 This will show a small animation spinner of: `⠏ -> ⠛ -> ⠹ -> ⢸ -> ⣰ -> ⣤ -> ⣆-> ⡇ Doing stuff...` and then every output you add with will be inserted above that.
 
 
-Note that in order to achieve a spinner animation while running the task, 2 child PHP processes are used via [spatie/fork](https://github.com/spatie/fork), one process is for the spinner animation and one for the task function you pass in. Since the task is executed in a child process, it won't be able to directly change any variables from the parent scope even if you use `use` to inherit parent scope.
-
-
-Meaning, something like this wont work:
+Since the task is executed in a child process, it won't be able to directly change any variables from the parent scope even if you use `use` to inherit parent scope. Meaning, something like this wont work:
 
 ```php
 $data = [];
@@ -294,12 +291,12 @@ dd($data); // still empty [] array. :/
 
 ```
 
-To get around this limitation, you may use the `persist` method on the task object passed into the callback to persist any serializable data:
+To get around this limitation, you may use the `data` method on the task object passed into the callback to persist any serializable data:
 
 ```php
 $data = [];
 $task = $this->runTask("Doing stuff....", function($task){
-    $task->persist(['foo'=>'bar']);
+    $task->data(['foo'=>'bar']);
     return true;
 });
 
