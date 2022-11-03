@@ -10,4 +10,4 @@ tests/default/
 tests/custom/
 tests/rendered/
 .compiled
-tests/mocks
+tests/mock

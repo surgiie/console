@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Container\Container;
+use Illuminate\Filesystem\Filesystem;
 use Surgiie\Console\Tests\TestCase;
 
 /*
@@ -14,7 +15,11 @@ use Surgiie\Console\Tests\TestCase;
 |
 */
 
-uses(TestCase::class)->in(__DIR__);
+uses(TestCase::class)
+    ->afterAll(function () {
+        $fs = new Filesystem;
+        $fs->deleteDirectory(test_mock_file_path());
+    })->in(__DIR__);
 
 /*
 |--------------------------------------------------------------------------
