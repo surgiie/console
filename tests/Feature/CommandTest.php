@@ -4,6 +4,7 @@ use Illuminate\Console\OutputStyle;
 use Illuminate\Container\Container;
 use Mockery as m;
 use Surgiie\Console\Command as ConsoleCommand;
+use Surgiie\Console\CommandTask;
 use Surgiie\Console\Concerns\WithValidation;
 use Symfony\Component\Console\Input\ArgvInput;
 use Symfony\Component\Console\Input\ArrayInput;
@@ -238,4 +239,40 @@ it('can compile files with blade', function () {
     EOL);
 
     unlink($testFilePath);
+});
+
+it('can run task', function () {
+    $command = new class extends ConsoleCommand
+    {
+        protected $signature = 'example';
+
+        public function handle()
+        {
+            $this->runTask('Doing something', function () {
+                return true;
+            });
+        }
+    };
+
+    $outputMock = m::mock(OutputStyle::class);
+
+    $command->setOutput($outputMock);
+    $taskMock = m::mock(CommandTask::class.'[run]', ['Doing something', $command, function () {
+        return true;
+    }]);
+
+    $this->container->bind(OutputStyle::class, function () use ($outputMock) {
+        return $outputMock;
+    });
+
+    $this->container->bind(CommandTask::class, function () use ($taskMock) {
+        return $taskMock;
+    });
+
+    $command->setLaravel($this->container);
+
+    $taskMock->shouldReceive('run')->once()->andReturn(true);
+    $outputMock->shouldReceive('writeln')->once()->andReturn('Finished - [Doing Something]');
+
+    $command->run(new ArrayInput([]), $outputMock);
 });

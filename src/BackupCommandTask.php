@@ -17,10 +17,6 @@ class BackupCommandTask extends Task
 
         $this->clearTerminalLine();
 
-        $this->output->writeln(
-            'Finished - ['.$this->title.']: '.($this->succesful === true ? '<info>✓</info>' : '<error>failed</error>')
-        );
-
         return $this;
     }
 }

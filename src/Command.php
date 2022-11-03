@@ -110,12 +110,16 @@ abstract class Command extends BaseCommand
     public function runTask(string $title = '', $task = null)
     {
         if (! extension_loaded('pcntl')) {
-            $task = (new BackupCommandTask($title, $this, $task));
+            $task = $this->laravel->makeWith(BackupCommandTask::class, ['title' => $title, 'command' => $this, 'callback' => $task]);
         } else {
-            $task = (new CommandTask($title, $this, $task));
+            $task = $this->laravel->makeWith(CommandTask::class, ['title' => $title, 'command' => $this, 'callback' => $task]);
         }
 
         $task->run();
+
+        $this->output->writeln(
+            'Finished - ['.$title.']: '.($task->succeeded() === true ? '<info>✓</info>' : '<error>failed</error>')
+        );
 
         return $task;
     }

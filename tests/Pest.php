@@ -65,3 +65,12 @@ function test_mock_file_path(string $path = '')
 
     return rtrim("$testsPath/mock/".trim($path, '/'), '/');
 }
+
+function storage_path(string $path = '')
+{
+    $path = test_mock_file_path('storage/'.$path);
+
+    @mkdir(dirname($path), recursive: true);
+
+    return $path;
+}

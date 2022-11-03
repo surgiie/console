@@ -39,11 +39,9 @@ class CommandTask extends Task
             );
 
         $this->succesful = $results[1];
-        $this->output->writeln(
-            'Finished - ['.$this->title.']: '.($results[1] ? '<info>✓</info>' : '<error>failed</error>')
-        );
 
         $this->persistedData = unserialize(file_get_contents($stateFile = $this->taskFilePath().'.state'));
+
         unlink($stateFile);
 
         return $this;
