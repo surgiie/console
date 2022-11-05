@@ -126,7 +126,7 @@ abstract class Command extends BaseCommand
         $task->run();
 
         $this->output->writeln(
-            'Finished - ['.$title.']: '.($task->succeeded() === true ? '<info>✓</info>' : '<error>failed</error>')
+            '  Finished - ['.$title.']: '.($task->succeeded() === true ? '<info>✓</info>' : '<error>failed</error>')
         );
 
         return $task;
