@@ -1,7 +1,9 @@
 # Release Notes
 
-## [Unreleased](https://github.com/surgiie/console/compare/v0.5.0...master)
-
+## [Unreleased](https://github.com/surgiie/console/compare/v0.5.1...master)
+## [v0.5.1](https://github.com/surgiie/console/compare/v0.5.0...v0.5.1) - 2022-11-04
+### Changed
+- Handle array input being used in tests/artisan testing during arbitraryOptions parsing by @surgiie https://github.com/surgiie/console/pull/9
 ## [v0.5.0](https://github.com/surgiie/console/compare/v0.4.0...v0.5.0) - 2022-11-04
 ### Changed
 - `getProperty` uses a new *defined* array property called properties by @surgiie https://github.com/surgiie/console/pull/8
@@ -12,6 +14,7 @@
 - `getOrAskForInput` updates `$this->data` when input is valid by @surgiie https://github.com/surgiie/console/pull/8
 - `getOrAskForInput` can optionally perform pre/post validation transformation by @surgiie https://github.com/surgiie/console/pull/8
 - Use new base `Surgiie\Console\Support\Task` for `CommandTask` and `BackupCommandTask` by @surgiie https://github.com/surgiie/console/pull/8
+
 ### Added
 - `getData` for getting data from `$this->data` by @surgiie https://github.com/surgiie/console/pull/8
 - `validator` lang can be customized via new `getValidationLangLocal` in `WithValidation` trait by @surgiie https://github.com/surgiie/console/pull/8
