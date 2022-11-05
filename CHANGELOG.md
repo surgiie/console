@@ -2,7 +2,7 @@
 
 ## [Unreleased](https://github.com/surgiie/console/compare/v0.5.5...master)
 
-## [v0.5.5](https://github.com/surgiie/console/compare/v0.5.3...v0.5.5) - 2022-11-05
+## [v0.5.5](https://github.com/surgiie/console/compare/v0.5.4...v0.5.5) - 2022-11-05
 
 ### Changed
 - Remove empty line from clear terminal line task, delegate to developer @surgiie https://github.com/surgiie/console/pulls/11
