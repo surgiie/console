@@ -1,5 +1,7 @@
 # Command
 
+![Tests](https://github.com/surgiie/console/actions/workflows/tests.yml/badge.svg)
+
 A base command and set of useful support trait/classes for [Laravel](https://laravel.com) or [Laravel Zero](https://laravel-zero.com) commands.
 
 ## Installation
