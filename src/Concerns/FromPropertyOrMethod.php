@@ -2,7 +2,6 @@
 
 namespace Surgiie\Console\Concerns;
 
-use Illuminate\Support\Facades\App;
 use InvalidArgumentException;
 
 trait FromPropertyOrMethod
@@ -15,7 +14,7 @@ trait FromPropertyOrMethod
         }
 
         if (method_exists($this, $name)) {
-            return App::call([$this, $name]);
+            return (function_exists('app') ? app() : $this->laravel)->call([$this, $name]);
         }
 
         if (! is_null($default)) {

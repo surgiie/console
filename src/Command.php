@@ -9,7 +9,6 @@ use Illuminate\Console\Contracts\NewLineAware;
 use Illuminate\Filesystem\Filesystem;
 use Illuminate\Support\Benchmark;
 use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\App;
 use Illuminate\Validation\Validator;
 use InvalidArgumentException;
 use LaravelZero\Framework\Commands\Command as LaravelZeroCommand;
@@ -19,6 +18,7 @@ use Surgiie\Console\Concerns\WithTransformers;
 use Surgiie\Console\Concerns\WithValidation;
 use Surgiie\Console\Exceptions\ExitCommandException;
 use Surgiie\Console\Exceptions\FailedRequirementException;
+use Surgiie\Transformer\Concerns\UsesTransformer;
 use Surgiie\Transformer\DataTransformer;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -38,13 +38,16 @@ if (class_exists(LaravelZeroCommand::class)) {
 
 abstract class Command extends BaseCommand
 {
-    use FromPropertyOrMethod;
+    use FromPropertyOrMethod, UsesTransformer;
 
     /**The merged arguments and options.*/
     protected Collection $data;
 
     /**The data that was arbitrary.*/
     protected Collection $arbitraryData;
+
+    /**Dynamic "properties".*/
+    protected array $properties = [];
 
     /**Construct a new Command instance.*/
     public function __construct()
@@ -56,11 +59,6 @@ abstract class Command extends BaseCommand
 
             $this->ignoreValidationErrors();
         }
-    }
-
-    public function __set(string $name, mixed $value)
-    {
-        // prevent depecration notice in 8.2 for dynamic properties.
     }
 
     /**Get the console components instance.*/
@@ -109,28 +107,44 @@ abstract class Command extends BaseCommand
         return $this->output;
     }
 
+    /**Check if the pctnl extension is loaded.*/
+    public function pctnlIsLoaded()
+    {
+        return extension_loaded('pcntl');
+    }
+
     /**Run a new command task.*/
     public function runTask(string $title = '', $task = null)
     {
-        if (! extension_loaded('pcntl')) {
-            $task = (new BackupCommandTask($title, $this, $task));
+        if (! $this->pctnlIsLoaded()) {
+            $task = $this->laravel->makeWith(BackupCommandTask::class, ['title' => $title, 'command' => $this, 'callback' => $task]);
         } else {
-            $task = (new CommandTask($title, $this, $task));
+            $task = $this->laravel->makeWith(CommandTask::class, ['title' => $title, 'command' => $this, 'callback' => $task]);
         }
 
         $task->run();
 
+        $this->output->writeln(
+            'Finished - ['.$title.']: '.($task->succeeded() === true ? '<info>✓</info>' : '<error>failed</error>')
+        );
+
         return $task;
     }
 
-    /**Get a property or create it using the given callback. */
-    protected function getProperty($property, Closure $createWith)
+    /**Get a property or create it in our properties array using the given callback. */
+    public function getProperty(string $property, ?Closure $createWith = null)
     {
-        if (! property_exists($this, $property)) {
-            return $this->$property = $createWith();
+        if (! $this->hasProperty($property)) {
+            return  $this->properties[$property] = $createWith();
         }
 
-        return $this->$property;
+        return $this->properties[$property] ?? null;
+    }
+
+    /**Get a property or create it in our properties array using the given callback. */
+    public function hasProperty(string $property)
+    {
+        return array_key_exists($property, $this->properties);
     }
 
     /**Return a new blade instance.*/
@@ -149,7 +163,7 @@ abstract class Command extends BaseCommand
     }
 
     /**$this->components->line(),but with the ability to edit color/title.*/
-    protected function message(string $title, string $content, string $bg = 'gray', string $fg = 'white')
+    public function message(string $title, string $content, string $bg = 'gray', string $fg = 'white')
     {
         $this->consoleView('line', [
             'bgColor' => $bg,
@@ -166,14 +180,33 @@ abstract class Command extends BaseCommand
         $this->message('DEBUG', $message, 'gray', 'white');
     }
 
+    /**Return data from merged data collection. */
+    public function getData(?string $key = null, $default = null)
+    {
+        if (is_null($key)) {
+            return $this->data;
+        }
+
+        return $this->data->get($key, $default);
+    }
+
+    /**Return data from arbitrary data collection. */
+    public function getArbitraryData(?string $key = null, $default = null)
+    {
+        if (is_null($key)) {
+            return $this->arbitraryData;
+        }
+
+        return $this->arbitraryData->get($key, $default);
+    }
+
     /**
      * Initialize command.
      */
     protected function initialize(InputInterface $input, OutputInterface $output): void
     {
         if ($this->fromPropertyOrMethod('arbitraryOptions', false)) {
-            global $argv;
-            $parser = new OptionsParser($argv);
+            $parser = new OptionsParser(invade($input)->tokens);
             $definition = $this->getDefinition();
 
             foreach ($parser->parse() as $name => $data) {
@@ -190,7 +223,7 @@ abstract class Command extends BaseCommand
     /**
      * Ask for input and optionally validate if trait is used.
      */
-    protected function getOrAskForInput(string $name, bool $confirm = false, bool $secret = false, array $rules = [], array $messages = [], array $attributes = [])
+    protected function getOrAskForInput(string $name, bool $confirm = false, bool $secret = false, array $rules = [], array $messages = [], array $attributes = [], array $transformers = [], array $transformersAfterValidation = [])
     {
         $input = $this->data->get($name);
 
@@ -211,14 +244,17 @@ abstract class Command extends BaseCommand
         $label = str_replace(['_', '-'], [' ', ' '], $name);
 
         $message = "Enter $label:";
-
         $this->message('INPUT', $message, fg: 'white', bg: 'green');
         $input = $this->$method('ctrl-c to exit');
 
+        $input = $this->transform($input, $transformers);
+
         $validate($input);
 
+        $input = $this->transform($input, $transformersAfterValidation);
+
         if ($confirm) {
-            $this->message('CONFIRM INPUT', "Confirm $label", fg: 'black', bg: 'cyan');
+            $this->message('CONFIRM INPUT', "Confirm $label:", fg: 'black', bg: 'cyan');
             $confirmInput = $this->$method('ctrl-c to exit');
 
             while ($input != $confirmInput) {
@@ -226,6 +262,8 @@ abstract class Command extends BaseCommand
                 $confirmInput = $this->$method('ctrl-c to exit');
             }
         }
+
+        $this->data->put($name, $input);
 
         return $input;
     }
@@ -238,13 +276,14 @@ abstract class Command extends BaseCommand
     protected function checkRequirement($requirement)
     {
         $isString = is_string($requirement);
+
         if (is_callable($requirement)) {
             $error = $requirement();
         } elseif ($isString && method_exists($this, $requirement)) {
-            $error = App::call([$this, $requirement]);
+            $error = $this->laravel->call([$this, $requirement]);
         } elseif ($isString && class_exists($requirement)) {
-            $instance = app($requirement);
-            $error = App::call($instance);
+            $instance = $this->laravel->make($requirement);
+            $error = $this->laravel->call($instance);
         } elseif ($isString) {
             $process = (new Process(['which', $requirement]));
 
@@ -279,17 +318,17 @@ abstract class Command extends BaseCommand
 
             // merge the data together.
             $data = (new DataTransformer(array_merge($this->arguments(), $this->options()), ['*date*' => ['?', Carbon::class]]))->transform();
-
             $this->data = collect($data)->filter(function ($v) {
                 return ! is_null($v);
             });
 
             // transform the data before validation
-            if ($withTransformers = $this->classUsesTrait($this, WithTransformers::class) && $transformers = $this->transformers()) {
+            if (($withTransformers = $this->classUsesTrait($this, WithTransformers::class)) && $transformers = $this->transformers()) {
                 $this->data = collect(
                     $this->transformData($this->data->all(), $transformers)
                 );
             }
+
             // validate
             $this->validate();
 
@@ -338,7 +377,7 @@ abstract class Command extends BaseCommand
     /**
      * Get memory usage bytes into a more human friendly label.
      */
-    protected function getMemoryUsage()
+    public function getMemoryUsage()
     {
         $bytes = memory_get_usage();
         $labels = [
