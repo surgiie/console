@@ -1,4 +1,4 @@
-# Command
+# Console
 
 ![Tests](https://github.com/surgiie/console/actions/workflows/tests.yml/badge.svg)
 
