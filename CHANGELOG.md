@@ -6,8 +6,7 @@
 ## [v0.5.4](https://github.com/surgiie/console/compare/v0.5.3...v0.5.4) - 2022-11-05
 
 ### Changed
-- Undo broken loader output from previous release. 
-
+- Undo broken loader output from previous release by @surgiie https://github.com/surgiie/console/commit/848af4d1242f8c7f62ab9e9104c120d47187e7be
 ## [v0.5.3](https://github.com/surgiie/console/compare/v0.5.2...v0.5.3) - 2022-11-05
 
 ### Changed
