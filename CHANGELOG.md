@@ -5,7 +5,7 @@
 ## [v0.5.3](https://github.com/surgiie/console/compare/v0.5.2...v0.5.3) - 2022-11-05
 
 ### Changed
-- Remove `commands()` and `components()` from `Task` as output is public on command and can be used in `$this` context in the `runTask` callback by @surgiie in https://github.com/surgiie/console/commit/1cdc119b9c2dd5fd5ebef3870c457631b6de0d9a
+- Remove `commands()` and `components()` from `Task` as output is public on command and can be used in `$this` context in the `runTask` callback by @surgiie in https://github.com/surgiie/console/commit/1cdc119b9c2dd5fd5ebef3870c457631b6de0d9a. Fixes issue where output cannot be asserted on artisan command tests.
 
 
 ## [v0.5.2](https://github.com/surgiie/console/compare/v0.5.1...v0.5.2) - 2022-11-05
