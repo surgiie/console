@@ -269,7 +269,7 @@ $task = $this->runTask("Doing stuff...", function($task){
     $task->clearTerminalLine();
     // and update output
     // loader will be re-added after this output automatically
-    $this->line("Did something else");
+    $this->output->write("Did something else");
 
     return true; // return whether task succeeded or not.
 

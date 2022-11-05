@@ -1,6 +1,12 @@
 # Release Notes
 
-## [Unreleased](https://github.com/surgiie/console/compare/v0.5.3...master)
+## [Unreleased](https://github.com/surgiie/console/compare/v0.5.4...master)
+
+
+## [v0.5.4](https://github.com/surgiie/console/compare/v0.5.3...v0.5.4) - 2022-11-05
+
+### Changed
+- Undo broken loader output from previous release. 
 
 ## [v0.5.3](https://github.com/surgiie/console/compare/v0.5.2...v0.5.3) - 2022-11-05
 

@@ -80,7 +80,7 @@ class CommandTask extends Task
             while ($this->isRunning()) {
                 foreach (static::$spinnerFrames as $frame) {
                     $this->clearTerminalLine();
-                    $this->command->line($frame.' '.$this->title);
+                    $this->output->write($frame.' '.$this->title);
                     usleep(100000);
                 }
             }
