@@ -4,7 +4,6 @@ use Illuminate\Console\OutputStyle;
 use Illuminate\Container\Container;
 use Mockery as m;
 use Surgiie\Console\Command as ConsoleCommand;
-use Surgiie\Console\Tests\RequirementExample;
 use Symfony\Component\Console\Input\ArrayInput;
 use Symfony\Component\Console\Output\BufferedOutput;
 use Symfony\Component\Console\Output\NullOutput;
@@ -221,7 +220,13 @@ it('checks requirement via invokable classes', function () {
         public function requirements()
         {
             return [
-                RequirementExample::class,
+                get_class(new class
+                {
+                    public function __invoke()
+                    {
+                        return 'Failed something';
+                    }
+                }),
             ];
         }
 

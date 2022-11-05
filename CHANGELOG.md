@@ -2,7 +2,7 @@
 
 ## [Unreleased](https://github.com/surgiie/console/compare/v0.5.0...master)
 
-## [v0.5.0](https://github.com/surgiie/console/compare/v0.4.0...v0.5.0) - 2022-10-24
+## [v0.5.0](https://github.com/surgiie/console/compare/v0.4.0...v0.5.0) - 2022-11-04
 ### Changed
 - `getProperty` uses a new *defined* array property called properties by @surgiie https://github.com/surgiie/console/pull/8
 - `getProperty` callback is now nullable by default, return false if not set @surgiie https://github.com/surgiie/console/pull/8
@@ -10,6 +10,7 @@
 - `App::call` and `app()` calls have been replaced with `$this->laravel->call` function calls by @surgiie https://github.com/surgiie/console/pull/8
 - Pass `invade($input)->tokens` to `OptionsParser` instead of `$argv` to improve testability by @surgiie https://github.com/surgiie/console/pull/8
 - `getOrAskForInput` updates `$this->data` when input is valid by @surgiie https://github.com/surgiie/console/pull/8
+- `getOrAskForInput` can optionally perform pre/post validation transformation by @surgiie https://github.com/surgiie/console/pull/8
 - Use new base `Surgiie\Console\Support\Task` for `CommandTask` and `BackupCommandTask` by @surgiie https://github.com/surgiie/console/pull/8
 ### Added
 - `getData` for getting data from `$this->data` by @surgiie https://github.com/surgiie/console/pull/8

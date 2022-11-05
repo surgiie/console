@@ -138,14 +138,14 @@ Transform, format, or sanitize input and arguments easily before `handle` is cal
 
 ```php
 
-public function transformers()
+protected function transformers()
 {
     return [
         'some-option'=>['trim', 'ucwords']
     ];
 }
 
-public function transformersAfterValidation()
+protected function transformersAfterValidation()
 {
     return [
         'some-option'=>['strtoupper']

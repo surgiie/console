@@ -32,7 +32,7 @@ class CommandTask extends Task
 
                     $this->cleanup();
 
-                    file_put_contents($this->taskFilePath().'.state', serialize($this->persistedData));
+                    file_put_contents($this->taskFilePath().'.state', serialize($this->taskData));
 
                     return $result;
                 }
@@ -40,7 +40,7 @@ class CommandTask extends Task
 
         $this->succesful = $results[1];
 
-        $this->persistedData = unserialize(file_get_contents($stateFile = $this->taskFilePath().'.state'));
+        $this->taskData = unserialize(file_get_contents($stateFile = $this->taskFilePath().'.state'));
 
         unlink($stateFile);
 
@@ -49,8 +49,6 @@ class CommandTask extends Task
 
     /**
      * Remove the run file.
-     *
-     * @return bool
      */
     protected function cleanup(): bool
     {
@@ -59,8 +57,6 @@ class CommandTask extends Task
 
     /**
      * Determine whether the spinner is spinning and should continue.
-     *
-     * @return bool
      */
     protected function isRunning(): bool
     {
@@ -74,11 +70,9 @@ class CommandTask extends Task
     }
 
     /**
-     * Start the spinner and keep going until we can detect in the
-     * state that it should stopped.
-     *
-     * @param  string  $outputText
-     * @return callable
+     * Start the spinner and keep going until we can detect
+     * when it should stopped by checking if the task file
+     * is still present.
      */
     protected function spin(): callable
     {

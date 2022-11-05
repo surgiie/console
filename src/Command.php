@@ -18,6 +18,7 @@ use Surgiie\Console\Concerns\WithTransformers;
 use Surgiie\Console\Concerns\WithValidation;
 use Surgiie\Console\Exceptions\ExitCommandException;
 use Surgiie\Console\Exceptions\FailedRequirementException;
+use Surgiie\Transformer\Concerns\UsesTransformer;
 use Surgiie\Transformer\DataTransformer;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -37,7 +38,7 @@ if (class_exists(LaravelZeroCommand::class)) {
 
 abstract class Command extends BaseCommand
 {
-    use FromPropertyOrMethod;
+    use FromPropertyOrMethod, UsesTransformer;
 
     /**The merged arguments and options.*/
     protected Collection $data;
@@ -106,10 +107,16 @@ abstract class Command extends BaseCommand
         return $this->output;
     }
 
+    /**Check if the pctnl extension is loaded.*/
+    public function pctnlIsLoaded()
+    {
+        return extension_loaded('pcntl');
+    }
+
     /**Run a new command task.*/
     public function runTask(string $title = '', $task = null)
     {
-        if (! extension_loaded('pcntl')) {
+        if (! $this->pctnlIsLoaded()) {
             $task = $this->laravel->makeWith(BackupCommandTask::class, ['title' => $title, 'command' => $this, 'callback' => $task]);
         } else {
             $task = $this->laravel->makeWith(CommandTask::class, ['title' => $title, 'command' => $this, 'callback' => $task]);
@@ -216,7 +223,7 @@ abstract class Command extends BaseCommand
     /**
      * Ask for input and optionally validate if trait is used.
      */
-    protected function getOrAskForInput(string $name, bool $confirm = false, bool $secret = false, array $rules = [], array $messages = [], array $attributes = [])
+    protected function getOrAskForInput(string $name, bool $confirm = false, bool $secret = false, array $rules = [], array $messages = [], array $attributes = [], array $transformers = [], array $transformersAfterValidation = [])
     {
         $input = $this->data->get($name);
 
@@ -240,7 +247,11 @@ abstract class Command extends BaseCommand
         $this->message('INPUT', $message, fg: 'white', bg: 'green');
         $input = $this->$method('ctrl-c to exit');
 
+        $input = $this->transform($input, $transformers);
+
         $validate($input);
+
+        $input = $this->transform($input, $transformersAfterValidation);
 
         if ($confirm) {
             $this->message('CONFIRM INPUT', "Confirm $label:", fg: 'black', bg: 'cyan');
@@ -312,11 +323,12 @@ abstract class Command extends BaseCommand
             });
 
             // transform the data before validation
-            if ($withTransformers = $this->classUsesTrait($this, WithTransformers::class) && $transformers = $this->transformers()) {
+            if (($withTransformers = $this->classUsesTrait($this, WithTransformers::class)) && $transformers = $this->transformers()) {
                 $this->data = collect(
                     $this->transformData($this->data->all(), $transformers)
                 );
             }
+
             // validate
             $this->validate();
 
@@ -409,6 +421,7 @@ abstract class Command extends BaseCommand
                 $name = $isOption ? '--'.$name : $name;
                 $type = $isOption ? 'option' : 'argument';
             }
+
             $this->components->error(str_replace([':name', ':type'], [$name, $type], $errors[0]));
         }
     }

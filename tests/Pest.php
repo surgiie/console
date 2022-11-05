@@ -19,6 +19,9 @@ uses(TestCase::class)
     ->afterAll(function () {
         $fs = new Filesystem;
         $fs->deleteDirectory(test_mock_file_path());
+    })->beforeEach(function () {
+        $fs = new Filesystem;
+        $fs->deleteDirectory(test_mock_file_path());
     })->in(__DIR__);
 
 /*

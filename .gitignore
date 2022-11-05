@@ -11,3 +11,4 @@ tests/custom/
 tests/rendered/
 .compiled
 tests/mock
+build
