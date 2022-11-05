@@ -20,6 +20,7 @@ use Surgiie\Console\Exceptions\ExitCommandException;
 use Surgiie\Console\Exceptions\FailedRequirementException;
 use Surgiie\Transformer\Concerns\UsesTransformer;
 use Surgiie\Transformer\DataTransformer;
+use Symfony\Component\Console\Input\ArrayInput;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Process\Process;
@@ -206,7 +207,23 @@ abstract class Command extends BaseCommand
     protected function initialize(InputInterface $input, OutputInterface $output): void
     {
         if ($this->fromPropertyOrMethod('arbitraryOptions', false)) {
-            $parser = new OptionsParser(invade($input)->tokens);
+            if ($input instanceof ArrayInput) {
+                $tokens = [];
+
+                foreach (invade($input)->parameters as $name => $value) {
+                    if (is_array($value) && str_starts_with($name, '--')) {
+                        foreach ($value as $v) {
+                            $tokens[] = "$name=$v";
+                        }
+                    } elseif (str_starts_with($name, '--')) {
+                        $tokens[] = is_bool($value) ? "$name" : "$name=$value";
+                    }
+                }
+            } else {
+                $tokens = invade($input)->tokens;
+            }
+
+            $parser = new OptionsParser($tokens);
             $definition = $this->getDefinition();
 
             foreach ($parser->parse() as $name => $data) {
