@@ -1,9 +1,18 @@
 # Release Notes
 
-## [Unreleased](https://github.com/surgiie/console/compare/v0.5.2...master)
+## [Unreleased](https://github.com/surgiie/console/compare/v0.5.3...master)
+
+## [v0.5.3](https://github.com/surgiie/console/compare/v0.5.2...v0.5.3) - 2022-11-05
+
+### Changed
+- Remove `commands()` and `components()` from `Task` as output is public on command and can be used in `$this` context in the `runTask` callback @surgiie https://github.com/surgiie/console/pull/11
+
+
 ## [v0.5.2](https://github.com/surgiie/console/compare/v0.5.1...v0.5.2) - 2022-11-05
+
 ### Changed
 - Add extra spacing to finished message for `runTask` to line up better with output from `$this->components` by @surgiie https://github.com/surgiie/console/pull/10
+
 ## [v0.5.1](https://github.com/surgiie/console/compare/v0.5.0...v0.5.1) - 2022-11-04
 ### Changed
 - Handle array input being used in tests/artisan testing during arbitraryOptions parsing by @surgiie https://github.com/surgiie/console/pull/9

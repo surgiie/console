@@ -265,7 +265,11 @@ $task = $this->runTask("Doing stuff...", function($task){
 
     sleep(4); // simulating stuff.
 
-    $task->command()->line("Did something else");
+    // clear terminal line of the loader 
+    $task->clearTerminalLine();
+    // and update output
+    // loader will be re-added after this output automatically
+    $this->line("Did something else");
 
     return true; // return whether task succeeded or not.
 

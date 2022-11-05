@@ -11,7 +11,7 @@ class BackupCommandTask extends Task
     {
         $callback = $this->callback;
 
-        $this->output->write($this->title.': <comment>loading...</comment>');
+        $this->command->line($this->title.': <comment>loading...</comment>');
 
         $this->succesful = $callback($this);
 

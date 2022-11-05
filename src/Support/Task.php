@@ -62,22 +62,6 @@ abstract class Task
         return $this->succesful;
     }
 
-    /**Get the command instance to write a new line in task.*/
-    public function command()
-    {
-        $this->clearTerminalLine();
-
-        return $this->command;
-    }
-
-    /**Get the components instance to write a new line in task.*/
-    public function components()
-    {
-        $this->clearTerminalLine();
-
-        return $this->command->getComponents();
-    }
-
     /**Run the task callback */
     abstract public function run();
 
