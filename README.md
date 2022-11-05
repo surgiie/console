@@ -265,7 +265,7 @@ $task = $this->runTask("Doing stuff...", function($task){
 
     sleep(4); // simulating stuff.
 
-    // clear terminal line of the loader 
+    // clear terminal line of the loader (escape sequence support required)
     $task->clearTerminalLine();
     // and update output
     // loader will be re-added after this output automatically
