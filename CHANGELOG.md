@@ -5,7 +5,7 @@
 ## [v0.5.0](https://github.com/surgiie/console/compare/v0.4.0...v0.5.0) - 2022-11-04
 ### Changed
 - `getProperty` uses a new *defined* array property called properties by @surgiie https://github.com/surgiie/console/pull/8
-- `getProperty` callback is now nullable by default, return false if not set @surgiie https://github.com/surgiie/console/pull/8
+- `getProperty` callback is now nullable by default, return false if not set by @surgiie https://github.com/surgiie/console/pull/8
 - `validator` function uses `en` for locale, can be customized via new `getValidationLangLocal` in `WithValidation` trait by @surgiie https://github.com/surgiie/console/pull/8
 - `App::call` and `app()` calls have been replaced with `$this->laravel->call` function calls by @surgiie https://github.com/surgiie/console/pull/8
 - Pass `invade($input)->tokens` to `OptionsParser` instead of `$argv` to improve testability by @surgiie https://github.com/surgiie/console/pull/8
@@ -14,7 +14,7 @@
 - Use new base `Surgiie\Console\Support\Task` for `CommandTask` and `BackupCommandTask` by @surgiie https://github.com/surgiie/console/pull/8
 ### Added
 - `getData` for getting data from `$this->data` by @surgiie https://github.com/surgiie/console/pull/8
-- `validator` lang can be customized via new `getValidationLangLocal` in `WithValidation` trait. @surgiie https://github.com/surgiie/console/pull/8
+- `validator` lang can be customized via new `getValidationLangLocal` in `WithValidation` trait by @surgiie https://github.com/surgiie/console/pull/8
 - `spatie/invade` by @surgiie https://github.com/surgiie/console/pull/8
 - Base `Task` class to reuse code @surgiie https://github.com/surgiie/console/pull/8
 
