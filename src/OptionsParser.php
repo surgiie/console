@@ -14,7 +14,7 @@ class OptionsParser
     protected array $options = [];
 
     /**
-     * Construct new instance.
+     * Construct new OptionParser instance.
      */
     public function __construct(array $options)
     {
