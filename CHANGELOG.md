@@ -1,7 +1,10 @@
 # Release Notes
 
-## [Unreleased](https://github.com/surgiie/console/compare/v0.5.5...master)
+## [Unreleased](https://github.com/surgiie/console/compare/v0.5.6...master)
+## [v0.5.6](https://github.com/surgiie/console/compare/v0.5.5...v0.5.6) - 2022-11-06
 
+### Changed
+- Move `clearTerminalLine` to command by @surgiie https://github.com/surgiie/console/pulls/12
 ## [v0.5.5](https://github.com/surgiie/console/compare/v0.5.4...v0.5.5) - 2022-11-05
 
 ### Changed
