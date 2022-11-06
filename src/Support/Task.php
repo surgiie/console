@@ -73,8 +73,6 @@ abstract class Task
             $this->output->write("\x0D");
             // Erase line.
             $this->output->write("\x1B[2K");
-        } else {
-            $this->output->writeln(''); // Make sure we first close the previous line
         }
     }
 }
