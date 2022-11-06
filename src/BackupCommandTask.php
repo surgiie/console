@@ -11,11 +11,15 @@ class BackupCommandTask extends Task
     {
         $callback = $this->callback;
 
-        $this->command->line($this->title.': <comment>loading...</comment>');
+        $this->output->write($this->title.': <comment>loading...</comment>');
 
         $this->succesful = $callback($this);
 
-        $this->clearTerminalLine();
+        if ($this->output->isDecorated()) {
+            $this->command->clearTerminalLine();
+        } else {
+            $this->output->writeln('');
+        }
 
         return $this;
     }

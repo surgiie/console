@@ -64,15 +64,4 @@ abstract class Task
 
     /**Run the task callback */
     abstract public function run();
-
-    /**Clear console line.*/
-    public function clearTerminalLine()
-    {
-        if ($this->output->isDecorated()) {
-            // Move the cursor to the beginning of the line
-            $this->output->write("\x0D");
-            // Erase line.
-            $this->output->write("\x1B[2K");
-        }
-    }
 }
