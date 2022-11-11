@@ -1,11 +1,16 @@
 # Release Notes
 
-## [Unreleased](https://github.com/surgiie/console/compare/v0.6.0...master)
+## [Unreleased](https://github.com/surgiie/console/compare/v0.7.0...master)
 
-## [v0.6.0](https://github.com/surgiie/console/compare/v0.5.6...v0.6.0) - 2022-11-11
+## [v0.7.0](https://github.com/surgiie/console/compare/v0.6.0...v0.7.0) - 2022-11-11
 ### Changed
 
 Removed `runTask` due to bad flicker effect, should utilize laravel zero's task command by @surgiie in https://github.com/surgiie/console/pull/14
+
+## [v0.6.0](https://github.com/surgiie/console/compare/v0.5.6...v0.6.0) - 2022-11-07
+### Changed
+
+Update blade dependency by @surgiie
 ## [v0.5.6](https://github.com/surgiie/console/compare/v0.5.5...v0.5.6) - 2022-11-06
 
 ### Changed
