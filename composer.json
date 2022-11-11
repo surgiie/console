@@ -30,8 +30,6 @@
         "nunomaduro/termwind": "^1.3",
         "surgiie/blade": "^0.3.0",
         "surgiie/transformer": "^0.1.0",
-        "spatie/fork": "^1.1",
-        "spatie/async": "^1.5",
         "spatie/once": "^3.1",
         "vlucas/phpdotenv": "^5.5",
         "spatie/invade": "^1.1",
