@@ -1,7 +1,15 @@
 # Release Notes
 
-## [Unreleased](https://github.com/surgiie/console/compare/v0.7.0...master)
+## [Unreleased](https://github.com/surgiie/console/compare/v0.8.0...master)
 
+
+## [v0.8.0](https://github.com/surgiie/console/compare/v0.7.0...v0.8.0) - 2022-11-12
+### Changed
+
+Update blade to `v0.4.0` and actually remove  `runTask` and `pctnlIsLoaded` @surgiie in https://github.com/surgiie/console/pull/15
+
+
+https://github.com/surgiie/console/pull/15
 ## [v0.7.0](https://github.com/surgiie/console/compare/v0.6.0...v0.7.0) - 2022-11-11
 ### Changed
 
