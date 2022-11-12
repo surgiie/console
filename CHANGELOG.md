@@ -1,6 +1,14 @@
 # Release Notes
 
-## [Unreleased](https://github.com/surgiie/console/compare/v0.7.0...master)
+## [Unreleased](https://github.com/surgiie/console/compare/v0.8.0...master)
+
+
+## [v0.8.0](https://github.com/surgiie/console/compare/v0.7.0...v0.8.0) - 2022-11-12
+### Changed
+
+Remove use of `realpath` in `consoleView` for better support for `phar://` file by @surgiie in https://github.com/surgiie/console/pull/16
+Update blade to `v0.4.0` and remove unsused code not removed in previous release. by @surgiie in https://github.com/surgiie/console/pull/15
+
 
 ## [v0.7.0](https://github.com/surgiie/console/compare/v0.6.0...v0.7.0) - 2022-11-11
 ### Changed

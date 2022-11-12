@@ -96,7 +96,7 @@ abstract class Command extends BaseCommand
         $path = base_path("resources/views/console/$view.php");
 
         if (! is_file($path)) {
-            $path = realpath(__DIR__."/resources/views/$view.php");
+            $path = __DIR__."/resources/views/$view.php";
         }
 
         render((string) $this->compile($path, $data), $verbosity);
