@@ -108,30 +108,6 @@ abstract class Command extends BaseCommand
         return $this->output;
     }
 
-    /**Check if the pctnl extension is loaded.*/
-    public function pctnlIsLoaded()
-    {
-        return extension_loaded('pcntl');
-    }
-
-    /**Run a new command task.*/
-    public function runTask(string $title = '', $task = null)
-    {
-        if (! $this->pctnlIsLoaded()) {
-            $task = $this->laravel->makeWith(BackupCommandTask::class, ['title' => $title, 'command' => $this, 'callback' => $task]);
-        } else {
-            $task = $this->laravel->makeWith(CommandTask::class, ['title' => $title, 'command' => $this, 'callback' => $task]);
-        }
-
-        $task->run();
-
-        $this->output->writeln(
-            '  Finished - ['.$title.']: '.($task->succeeded() === true ? '<info>✓</info>' : '<error>failed</error>')
-        );
-
-        return $task;
-    }
-
     /**Clear console line.*/
     public function clearTerminalLine()
     {
