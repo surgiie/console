@@ -1,8 +1,12 @@
 # Release Notes
 
-## [Unreleased](https://github.com/surgiie/console/compare/v0.8.0...master)
+## [Unreleased](https://github.com/surgiie/console/compare/v0.9.0...master)
 
 
+## [v0.9.0](https://github.com/surgiie/console/compare/v0.8.0...v0.9.0) - 2022-11-12
+### Changed
+
+Update blade to `v0.5.0` by @surgiie.
 ## [v0.8.0](https://github.com/surgiie/console/compare/v0.7.0...v0.8.0) - 2022-11-12
 ### Changed
 
