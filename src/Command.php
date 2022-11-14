@@ -163,9 +163,14 @@ abstract class Command extends BaseCommand
     }
 
     /**Print a debug message.*/
-    protected function debug(string $message)
+    protected function debug(string $message, bool $clearLine = false)
     {
-        $this->message('DEBUG', $message, 'gray', 'white');
+        if ($this->hasOption('debug') && $this->data->get('debug')) {
+            if ($clearLine) {
+                $this->clearTerminalLine();
+            }
+            $this->message('DEBUG', $message, 'yellow', 'black');
+        }
     }
 
     /**Return data from merged data collection. */
