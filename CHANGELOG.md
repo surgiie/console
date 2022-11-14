@@ -1,7 +1,12 @@
 # Release Notes
 
-## [Unreleased](https://github.com/surgiie/console/compare/v0.9.0...master)
+## [Unreleased](https://github.com/surgiie/console/compare/v0.10.0...master)
 
+
+## [v0.10.0](https://github.com/surgiie/console/compare/v0.9.0...v0.10.0) - 2022-11-13
+### Changed
+
+Update `debug` to output when a `debug` option is given and update colors by @surgiie in https://github.com/surgiie/console/pulls/17
 
 ## [v0.9.0](https://github.com/surgiie/console/compare/v0.8.0...v0.9.0) - 2022-11-12
 ### Changed
