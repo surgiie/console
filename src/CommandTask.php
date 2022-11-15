@@ -2,6 +2,7 @@
 
 namespace Surgiie\Console;
 
+use Phar;
 use Spatie\Fork\Fork;
 use Surgiie\Console\Support\Task;
 
@@ -100,6 +101,10 @@ class CommandTask extends Task
 
     protected function taskFilePath()
     {
+        if ($phar = Phar::running(false)) {
+            return dirname($phar).'/console-tasks/'.$this->id;
+        }
+
         return storage_path('app/console-tasks/'.$this->id);
     }
 
