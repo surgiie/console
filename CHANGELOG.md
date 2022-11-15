@@ -1,7 +1,10 @@
 # Release Notes
 
-## [Unreleased](https://github.com/surgiie/console/compare/v0.10.0...master)
+## [Unreleased](https://github.com/surgiie/console/compare/v0.11.0...master)
+## [v0.11.0](https://github.com/surgiie/console/compare/v0.10.0...v0.11.0) - 2022-11-13
+### Added
 
+Loader and `runTask` components for running task with a loader spinner by @surgiie in https://github.com/surgiie/console/pulls/18
 
 ## [v0.10.0](https://github.com/surgiie/console/compare/v0.9.0...v0.10.0) - 2022-11-13
 ### Changed
