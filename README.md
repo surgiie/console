@@ -253,3 +253,50 @@ public function handle()
 
 
 
+### Run Task With Spinner/Loader
+
+Note that in order to achieve a spinner animation while running the task, 2 child PHP processes are used via [spatie/fork](https://github.com/spatie/fork), one process is for the spinner animation and one for the task function you pass in. This requires the terminal to support escape sequence and the PCNTL extenion must be installed. If you are supporting windows, `composer install --ignore-platform-reqs` maybe used if needed and the code will just fallback to a basic task that does not have a spinner.
+
+```php
+$task = $this->runTask("Doing stuff...", function($task){
+    // command()->line() should be called for every new line so it doesnt interfere with the "loading/live text".
+    $task->command()->line("Did something");
+    sleep(4); // simulating stuff.
+    // clear terminal line of the loader (escape sequence support required)
+    $task->clearTerminalLine();
+    // and update output
+    // loader will be re-added after this output automatically
+    $this->output->write("Did something else");
+    return true; // return whether task succeeded or not.
+});
+if($task->succesful()){
+    // do stuff.
+}
+```
+
+This will show a small animation spinner of: `⠏ -> ⠛ -> ⠹ -> ⢸ -> ⣰ -> ⣤ -> ⣆-> ⡇ Doing stuff...` and then every output you add with will be inserted above that.
+
+
+Since the task is executed in a child process, it won't be able to directly change any variables from the parent scope even if you use `use` to inherit parent scope. Meaning, something like this wont work:
+
+```php
+$data = [];
+$this->runTask("Doing stuff...", function($task) use(&$data){
+    $data['new_value'] = 'foobar';
+    return true;
+});
+dd($data); // still empty [] array. :/
+```
+
+To get around this limitation, you may use the `data` method on the task object passed into the callback to persist any serializable data:
+
+```php
+$data = [];
+$task = $this->runTask("Doing stuff....", function($task){
+    $task->data(['foo'=>'bar']);
+    return true;
+});
+dd($task->getData()); // ['foo'=>'bar']
+```
+
+This works by using `serialize` on the data you persist and writing it to a temporary file your application's storage directory then calls `unserialize` on the data back in the parent process.
