@@ -60,7 +60,7 @@ abstract class Task
     /**Whether the task was successful.*/
     public function succeeded()
     {
-        return in_array($this->succesful, [null, true]);
+        return $this->succesful === null || $this->succesful === true;
     }
 
     /**Run the task callback */
