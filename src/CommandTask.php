@@ -26,13 +26,17 @@ class CommandTask extends Task
             ->run(
                 $this->spin(),
                 function () {
-                    $callback = $this->callback;
-                    $result = $callback($this);
-                    $this->cleanup();
+                    try {
+                        $callback = $this->callback;
+                        $result = $callback($this);
+                        $this->cleanup();
+                        file_put_contents($this->taskFilePath().'.state', serialize($this->taskData));
 
-                    file_put_contents($this->taskFilePath().'.state', serialize($this->taskData));
-
-                    return $result;
+                        return $result;
+                    } catch(\Throwable $e) {
+                        $this->cleanup();
+                        @unlink($this->taskFilePath().'.state');
+                    }
                 }
             );
         // erases previous line
