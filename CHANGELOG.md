@@ -1,6 +1,11 @@
 # Release Notes
 
-## [Unreleased](https://github.com/surgiie/console/compare/v0.11.0...master)
+## [Unreleased](https://github.com/surgiie/console/compare/v0.12.0...master)
+## [v0.12.0](https://github.com/surgiie/console/compare/v0.11.0...v0.12.0) - 2022-11-14
+### Changed
+
+Update how succeeded is determined in `Task` by @surgiie in https://github.com/surgiie/console/pulls/19
+
 ## [v0.11.0](https://github.com/surgiie/console/compare/v0.10.0...v0.11.0) - 2022-11-14
 ### Added
 
