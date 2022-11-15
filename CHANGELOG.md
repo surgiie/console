@@ -1,6 +1,10 @@
 # Release Notes
 
-## [Unreleased](https://github.com/surgiie/console/compare/v0.13.0...master)
+## [Unreleased](https://github.com/surgiie/console/compare/v0.14.0...master)
+## [v0.14.0](https://github.com/surgiie/console/compare/v0.13.0...v0.14.0) - 2022-11-14
+### Added
+
+Update path to phar path if running in phar for console tasks @surgiie in https://github.com/surgiie/console/pulls/21
 ## [v0.13.0](https://github.com/surgiie/console/compare/v0.12.0...v0.13.0) - 2022-11-14
 ### Added
 
