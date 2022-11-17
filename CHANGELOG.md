@@ -1,6 +1,10 @@
 # Release Notes
 
-## [Unreleased](https://github.com/surgiie/console/compare/v0.14.0...master)
+## [Unreleased](https://github.com/surgiie/console/compare/v0.15.0...master)
+## [v0.15.0](https://github.com/surgiie/console/compare/v0.13.0...v0.15.0) - 2022-11-16
+### Changed
+
+Throw caught exception in `CommandTask` cleanup @surgiie in https://github.com/surgiie/console/pulls/22
 ## [v0.14.0](https://github.com/surgiie/console/compare/v0.13.0...v0.14.0) - 2022-11-14
 ### Added
 

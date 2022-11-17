@@ -37,6 +37,7 @@ class CommandTask extends Task
                     } catch(\Throwable $e) {
                         $this->cleanup();
                         @unlink($this->taskFilePath().'.state');
+                        throw $e;
                     }
                 }
             );
