@@ -271,6 +271,7 @@ abstract class Command extends BaseCommand
 
                 if ($validator->fails()) {
                     $this->displayValidationErrors($validator, isUserInput: true);
+                    $this->exit();
                 }
             }
         };
