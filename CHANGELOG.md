@@ -1,6 +1,11 @@
 # Release Notes
 
-## [Unreleased](https://github.com/surgiie/console/compare/v0.15.0...master)
+## [Unreleased](https://github.com/surgiie/console/compare/v0.15.1...master)
+
+## [v0.15.0](https://github.com/surgiie/console/compare/v0.15.0...v0.15.1) - 2022-11-27
+### Changed
+
+Exit command when validation fails in `getOrAskForInput`
 ## [v0.15.0](https://github.com/surgiie/console/compare/v0.14.0...v0.15.0) - 2022-11-16
 ### Changed
 
