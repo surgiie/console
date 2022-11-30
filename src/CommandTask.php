@@ -48,7 +48,7 @@ class CommandTask extends Task
 
         $stateFile = $this->taskFilePath().'.state';
 
-        if(is_file($stateFile)){
+        if (is_file($stateFile)) {
             $this->taskData = unserialize(file_get_contents($stateFile));
             unlink($stateFile);
         }
