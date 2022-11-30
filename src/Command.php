@@ -453,10 +453,10 @@ abstract class Command extends BaseCommand
             if ($isUserInput) {
                 $name = str_replace(['-', '_'], [' ', ' '], $name);
                 $type = '';
-            } else if(! $isOption && ! $isArgument){
+            } elseif (! $isOption && ! $isArgument) {
                 $name = '--'.$name;
-                $type = "option";
-            }else {
+                $type = 'option';
+            } else {
                 $name = $isOption ? '--'.$name : $name;
                 $type = $isOption ? 'option' : 'argument';
             }
