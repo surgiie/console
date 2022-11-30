@@ -1,6 +1,11 @@
 # Release Notes
 
-## [Unreleased](https://github.com/surgiie/console/compare/v0.15.2...master)
+## [Unreleased](https://github.com/surgiie/console/compare/v0.15.3...master)
+## [v0.15.3](https://github.com/surgiie/console/compare/v0.15.2...v0.15.3) - 2022-11-29
+### Changed
+
+Improve error type for arbitraryOptions by defaulting to input type being an option when an argument or option is not set by @surgiie in https://github.com/surgiie/console/pull/24
+
 ## [v0.15.2](https://github.com/surgiie/console/compare/v0.15.1...v0.15.2) - 2022-11-29
 ### Changed
 
