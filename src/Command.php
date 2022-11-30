@@ -448,11 +448,15 @@ abstract class Command extends BaseCommand
     {
         foreach ($validator->messages()->getMessages() as $name => $errors) {
             $isOption = $this->hasOption($name);
+            $isArgument = $this->hasArgument($name);
 
             if ($isUserInput) {
                 $name = str_replace(['-', '_'], [' ', ' '], $name);
                 $type = '';
-            } else {
+            } else if(! $isOption && ! $isArgument){
+                $name = '--'.$name;
+                $type = "option";
+            }else {
                 $name = $isOption ? '--'.$name : $name;
                 $type = $isOption ? 'option' : 'argument';
             }
