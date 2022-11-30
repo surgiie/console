@@ -1,6 +1,11 @@
 # Release Notes
 
-## [Unreleased](https://github.com/surgiie/console/compare/v0.15.1...master)
+## [Unreleased](https://github.com/surgiie/console/compare/v0.15.2...master)
+## [v0.15.2](https://github.com/surgiie/console/compare/v0.15.1...v0.15.2) - 2022-11-29
+### Changed
+
+Fix issue where state file is not always present when cleaning up task files by @surgiie in https://github.com/surgiie/console/pull/23
+### Changed
 
 ## [v0.15.1](https://github.com/surgiie/console/compare/v0.15.0...v0.15.1) - 2022-11-27
 ### Changed
