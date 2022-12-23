@@ -1,6 +1,12 @@
 # Release Notes
 
-## [Unreleased](https://github.com/surgiie/console/compare/v0.16.0...master)
+## [Unreleased](https://github.com/surgiie/console/compare/v0.17.0...master)
+
+## [v0.17.0](https://github.com/surgiie/console/compare/v0.16.0...v0.17.0) - 2022-12-23
+
+### Changed
+- Add static flag to allow disabling the async/fork `runTask` by @surgiie.
+
 ## [v0.16.0](https://github.com/surgiie/console/compare/v0.15.3...v0.16.0) - 2022-12-07
 ### Changed
 
