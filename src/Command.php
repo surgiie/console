@@ -66,13 +66,13 @@ abstract class Command extends BaseCommand
     }
 
     /**Disable the use of pctnl/async task.*/
-    public function disableAsyncTask()
+    public static function disableAsyncTask()
     {
         static::$disabledAsyncTask = true;
     }
 
     /**Enable the use of pctnl/async task.*/
-    public function enableAsyncTask()
+    public static function enableAsyncTask()
     {
         static::$disabledAsyncTask = false;
     }
