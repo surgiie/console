@@ -44,6 +44,9 @@ abstract class Command extends BaseCommand
     /**The merged arguments and options.*/
     protected Collection $data;
 
+    /**Allow async/pctnl task to be disabled. */
+    protected static $disabledAsyncTask = false;
+
     /**The data that was arbitrary.*/
     protected Collection $arbitraryData;
 
@@ -60,6 +63,18 @@ abstract class Command extends BaseCommand
 
             $this->ignoreValidationErrors();
         }
+    }
+
+    /**Disable the use of pctnl/async task.*/
+    public function disableAsyncTask()
+    {
+        static::$disabledAsyncTask = true;
+    }
+    
+    /**Enable the use of pctnl/async task.*/
+    public function enableAsyncTask()
+    {
+        static::$disabledAsyncTask = false;
     }
 
     /**Get the console components instance.*/
@@ -202,7 +217,7 @@ abstract class Command extends BaseCommand
     /**Run a new command task.*/
     public function runTask(string $title = '', $task = null, string $finishedText = '')
     {
-        if (! $this->pctnlIsLoaded()) {
+        if (! $this->pctnlIsLoaded() || static::$disabledAsyncTask == true) {
             $task = $this->laravel->makeWith(BackupCommandTask::class, ['title' => $title, 'command' => $this, 'callback' => $task]);
         } else {
             $task = $this->laravel->makeWith(CommandTask::class, ['title' => $title, 'command' => $this, 'callback' => $task]);
