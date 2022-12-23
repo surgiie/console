@@ -70,7 +70,7 @@ abstract class Command extends BaseCommand
     {
         static::$disabledAsyncTask = true;
     }
-    
+
     /**Enable the use of pctnl/async task.*/
     public function enableAsyncTask()
     {
