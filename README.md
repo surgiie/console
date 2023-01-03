@@ -254,34 +254,25 @@ public function handle()
 
 
 ### Run Task With Spinner/Loader
-
-Note that in order to achieve a spinner animation while running the task, 2 child PHP processes are used via [spatie/fork](https://github.com/spatie/fork), one process is for the spinner animation and one for the task function you pass in. This requires the terminal to support escape sequence and the PCNTL extenion must be installed. If you are supporting windows, `composer install --ignore-platform-reqs` maybe used if needed and the code will just fallback to a basic task that does not have a spinner.
+To give users of your a better experience for tasks, you may desire to show a nice spinner animation, Note that in order to achieve a spinner animation while running the task, 2 child PHP processes are used via [spatie/fork](https://github.com/spatie/fork), one process is for the spinner animation and one for the task function you pass in. This requires the terminal to support escape sequence and the PCNTL extenion must be installed. This feature is only supported on unix based os's and on windows a plain "Loading.." task will be fallen back to. 
 
 ```php
 $task = $this->runTask("Doing stuff...", function($task){
-    // command()->line() should be called for every new line so it doesnt interfere with the "loading/live text".
-    $task->command()->line("Did something");
     sleep(4); // simulating stuff.
-    // clear terminal line of the loader (escape sequence support required)
-    $task->clearTerminalLine();
-    // and update output
-    // loader will be re-added after this output automatically
-    $this->output->write("Did something else");
+
     return true; // return whether task succeeded or not.
 });
+
 if($task->succesful()){
     // do stuff.
 }
 ```
 
-This will show a small animation spinner of: `⠏ -> ⠛ -> ⠹ -> ⢸ -> ⣰ -> ⣤ -> ⣆-> ⡇ Doing stuff...` and then every output you add with will be inserted above that.
-
-
-Since the task is executed in a child process, it won't be able to directly change any variables from the parent scope even if you use `use` to inherit parent scope. Meaning, something like this wont work:
+There is 1 annoying caveat about this and that is since the task is executed in a child process, it won't be able to directly change any variables from the parent scope even if with `use` keyword to inherit parent scope. Meaning, something like this wont work:
 
 ```php
 $data = [];
-$this->runTask("Doing stuff...", function($task) use(&$data){
+$this->runTask("Doing stuff...", function($task) use (&$data){
     $data['new_value'] = 'foobar';
     return true;
 });
@@ -299,4 +290,7 @@ $task = $this->runTask("Doing stuff....", function($task){
 dd($task->getData()); // ['foo'=>'bar']
 ```
 
-This works by using `serialize` on the data you persist and writing it to a temporary file your application's storage directory then calls `unserialize` on the data back in the parent process.
+This works by using `serialize` on the data and writing it to a temporary file within your application's storage directory then calls `unserialize` on the data back in the parent process.
+
+
+**Note** If prefer plain task with a "Loading..." text and not running in a separate process as mentioned above, this functionality can be disabled with `Surgiie\Console\Command::disableAsyncTask()` 
