@@ -110,8 +110,8 @@ abstract class Command extends BaseCommand
         $view = rtrim($view, '.php');
         $path = base_path("resources/views/console/$view.php");
 
-        if (!is_file($path)) {
-            $path = __DIR__ . "/resources/views/$view.php";
+        if (! is_file($path)) {
+            $path = __DIR__."/resources/views/$view.php";
         }
 
         render((string) $this->compile($path, $data), $verbosity);
@@ -137,7 +137,7 @@ abstract class Command extends BaseCommand
     /**Get a property or create it in our properties array using the given callback. */
     public function getProperty(string $property, ?Closure $createWith = null)
     {
-        if (!$this->hasProperty($property)) {
+        if (! $this->hasProperty($property)) {
             return  $this->properties[$property] = $createWith();
         }
 
@@ -160,13 +160,12 @@ abstract class Command extends BaseCommand
 
         $compilePath = config('app.compiled_path');
 
-        if (!is_null($compilePath)) {
+        if (! is_null($compilePath)) {
             $blade->setCompiledPath($compilePath);
         }
 
         return $blade;
     }
-
 
     /**Compile a file using blade engine.*/
     public function compile(string $path, array $data = []): string
@@ -226,7 +225,7 @@ abstract class Command extends BaseCommand
     /**Run a new command task.*/
     public function runTask(string $title = '', $task = null, string $finishedText = '')
     {
-        if (!$this->pctnlIsLoaded() || static::$disabledAsyncTask == true) {
+        if (! $this->pctnlIsLoaded() || static::$disabledAsyncTask == true) {
             $task = $this->laravel->makeWith(BackupCommandTask::class, ['title' => $title, 'command' => $this, 'callback' => $task]);
         } else {
             $task = $this->laravel->makeWith(CommandTask::class, ['title' => $title, 'command' => $this, 'callback' => $task]);
@@ -236,7 +235,7 @@ abstract class Command extends BaseCommand
 
         $finishedText = $finishedText ?: $title;
         $this->output->writeln(
-            "  $finishedText: " . ($task->succeeded() ? '<info>✓</info>' : '<error>failed</error>')
+            "  $finishedText: ".($task->succeeded() ? '<info>✓</info>' : '<error>failed</error>')
         );
 
         return $task;
@@ -268,7 +267,7 @@ abstract class Command extends BaseCommand
             $definition = $this->getDefinition();
 
             foreach ($parser->parse() as $name => $data) {
-                if (!$definition->hasOption($name)) {
+                if (! $definition->hasOption($name)) {
                     $this->arbitraryData->put($name, $data['value']);
                     $this->addOption($name, mode: $data['mode']);
                 }
@@ -285,7 +284,7 @@ abstract class Command extends BaseCommand
     {
         $input = $this->data->get($name);
 
-        if (!empty($input)) {
+        if (! empty($input)) {
             return $input;
         }
 
@@ -378,7 +377,7 @@ abstract class Command extends BaseCommand
             // merge the data together.
             $data = (new DataTransformer(array_merge($this->arguments(), $this->options()), ['*date*' => ['?', Carbon::class]]))->transform();
             $this->data = collect($data)->filter(function ($v) {
-                return !is_null($v);
+                return ! is_null($v);
             });
 
             // transform the data before validation
@@ -408,7 +407,7 @@ abstract class Command extends BaseCommand
                         $this->arbitraryData->put($name, $value);
                     }
 
-                    return !$isArbitrary;
+                    return ! $isArbitrary;
                 });
             }
 
@@ -422,7 +421,7 @@ abstract class Command extends BaseCommand
                 $this->newLine();
                 $this->message(
                     'Peformance',
-                    'Memory: ' . $this->getMemoryUsage() . '|Execution Time: ' . number_format($ms, 2, thousands_separator: '') . 'ms',
+                    'Memory: '.$this->getMemoryUsage().'|Execution Time: '.number_format($ms, 2, thousands_separator: '').'ms',
                     bg: 'cyan'
                 );
             }
@@ -451,7 +450,7 @@ abstract class Command extends BaseCommand
             $bytes /= 1024;
         }
 
-        return number_format($bytes, 2) . $labels[$i];
+        return number_format($bytes, 2).$labels[$i];
     }
 
     /**Validate the current data for options and arguments.*/
@@ -477,11 +476,11 @@ abstract class Command extends BaseCommand
             if ($isUserInput) {
                 $name = str_replace(['-', '_'], [' ', ' '], $name);
                 $type = '';
-            } elseif (!$isOption && !$isArgument) {
-                $name = '--' . $name;
+            } elseif (! $isOption && ! $isArgument) {
+                $name = '--'.$name;
                 $type = 'option';
             } else {
-                $name = $isOption ? '--' . $name : $name;
+                $name = $isOption ? '--'.$name : $name;
                 $type = $isOption ? 'option' : 'argument';
             }
 

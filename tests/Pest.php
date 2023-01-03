@@ -77,9 +77,7 @@ function test_mock_file_path(string $path = '')
 // allows blade tests to pass for now, todo setup config repository as part of tests
 function config(string $path = '')
 {
-   
 }
-
 
 function storage_path(string $path = '')
 {
