@@ -14,11 +14,11 @@ trait WithValidation
     /**Get path to the lang directory for validation message language.*/
     protected function getValidationLangPath(): string
     {
-        return realpath(__DIR__.'/../resources/lang');
+        return __DIR__.'/../resources/lang';
     }
 
     /**Get locale to use for validation lang.*/
-    protected function getValidationLangLocal(): string
+    protected function getValidationLangLocale(): string
     {
         return 'en';
     }
@@ -30,7 +30,7 @@ trait WithValidation
     {
         $loader = new FileLoader(new Filesystem, $this->getValidationLangPath());
 
-        $translator = new Translator($loader, $this->getValidationLangLocal());
+        $translator = new Translator($loader, $this->getValidationLangLocale());
 
         $factory = new ValidatorFactory($translator, $this->laravel);
 
