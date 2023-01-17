@@ -119,10 +119,10 @@ it('checks requirements', function () {
     expect($status)->toBe(1);
     $commandOutput = trim($output->fetch());
 
-    $this->assertStringContainsString(
-        $commandOutput,
-        'ERROR  This command requires some-dependency-that-doesnt-exist.'
+    $this->assertTrue(
+        str_contains($commandOutput, 'ERROR  This command requires some-dependency-that-doesnt-exist.')
     );
+    
     $this->assertStringNotContainsString(
         $commandOutput,
         'Doing Stuff...'
@@ -159,9 +159,8 @@ it('checks requirement callbacks', function () {
     expect($status)->toBe(1);
     $commandOutput = $output->fetch();
 
-    $this->assertStringContainsString(
-        trim($commandOutput),
-        'ERROR  Something aint right.'
+    $this->assertTrue(
+        str_contains(trim($commandOutput),   'ERROR  Something aint right.')
     );
     $this->assertStringNotContainsString(
         $commandOutput,
@@ -202,9 +201,8 @@ it('checks requirement via class methods', function () {
     expect($status)->toBe(1);
     $commandOutput = $output->fetch();
 
-    $this->assertStringContainsString(
-        trim($commandOutput),
-        'ERROR  The thing wasnt right.'
+    $this->assertTrue(
+        str_contains(trim($commandOutput),   'ERROR  The thing wasnt right.')
     );
     $this->assertStringNotContainsString(
         $commandOutput,
@@ -246,9 +244,8 @@ it('checks requirement via invokable classes', function () {
     expect($status)->toBe(1);
     $commandOutput = $output->fetch();
 
-    $this->assertStringContainsString(
-        trim($commandOutput),
-        'ERROR  Failed something.'
+    $this->assertTrue(
+        str_contains(trim($commandOutput),   'ERROR  Failed something.')
     );
     $this->assertStringNotContainsString(
         $commandOutput,
