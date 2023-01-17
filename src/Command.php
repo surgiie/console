@@ -429,6 +429,7 @@ abstract class Command extends BaseCommand
             return $status;
         } catch (ExitCommandException $e) {
             $this->components->error($e->getMessage());
+
             return $e->getStatus();
         }
     }
