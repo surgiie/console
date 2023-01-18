@@ -3,6 +3,7 @@
 namespace Surgiie\Console;
 
 use Carbon\Carbon;
+use Carbon\Exceptions\InvalidFormatException;
 use Closure;
 use Illuminate\Console\Command as LaravelCommand;
 use Illuminate\Console\Contracts\NewLineAware;
@@ -372,7 +373,12 @@ abstract class Command extends BaseCommand
             }
 
             // merge the data together.
-            $data = (new DataTransformer(array_merge($this->arguments(), $this->options()), ['*date*' => ['?', Carbon::class]]))->transform();
+            try {
+                $data = (new DataTransformer(array_merge($this->arguments(), $this->options()), ['*date*' => ['?', Carbon::class]]))->transform();
+            } catch (InvalidFormatException $e) {
+                $this->exit($e->getMessage());
+            }
+
             $this->data = collect($data)->filter(function ($v) {
                 return ! is_null($v);
             });
@@ -426,7 +432,7 @@ abstract class Command extends BaseCommand
             return $status;
         } catch (ExitCommandException $e) {
             $level = $e->getLevel();
-            
+
             $this->components->$level($e->getMessage());
 
             return $e->getStatus();
