@@ -94,10 +94,7 @@ abstract class Command extends BaseCommand
      */
     protected function exit(string $error = '', int $code = 1, string $level = 'error'): void
     {
-        if ($error) {
-            $this->components->{$level}($error);
-        }
-        throw new ExitCommandException($error, $code);
+        throw new ExitCommandException($error, $code, $level);
     }
 
     /**
@@ -428,7 +425,9 @@ abstract class Command extends BaseCommand
 
             return $status;
         } catch (ExitCommandException $e) {
-            $this->components->error($e->getMessage());
+            $level = $e->getLevel();
+            
+            $this->components->$level($e->getMessage());
 
             return $e->getStatus();
         }
