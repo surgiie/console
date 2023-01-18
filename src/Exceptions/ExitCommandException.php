@@ -6,7 +6,7 @@ use Exception;
 
 class ExitCommandException extends Exception
 {
-    public function __construct(string $message, int $status, string $level)
+    public function __construct(string $message, int $status = 1 , string $level = "error")
     {
         $this->message = $message;
         $this->status = $status;
