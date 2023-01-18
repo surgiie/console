@@ -426,7 +426,7 @@ abstract class Command extends BaseCommand
             return $status;
         } catch (ExitCommandException $e) {
             $level = $e->getLevel();
-            
+
             $this->components->$level($e->getMessage());
 
             return $e->getStatus();
