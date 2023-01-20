@@ -11,14 +11,13 @@ use Symfony\Component\Console\Output\NullOutput;
 beforeEach(function () {
     $this->container = new Container;
 });
-afterEach(fn () => m::close());
 
-it('can store values into properties property', function () {
+it('can store values into cache property', function () {
     $command = new class extends ConsoleCommand
     {
         public function example()
         {
-            return $this->getProperty('foo', function () {
+            return $this->fromArrayCache('foo', function () {
                 return 'bar';
             });
         }
@@ -29,7 +28,7 @@ it('can store values into properties property', function () {
 
     expect($value)->toBe('bar');
 
-    expect($command->getProperty('foo'))->toBe('bar');
+    expect($command->fromArrayCache('foo'))->toBe('bar');
 });
 
 it('merges options and arguments into data property', function () {
@@ -59,37 +58,6 @@ it('merges options and arguments into data property', function () {
     expect($command->getData()->all())->toBe(['foo' => 'bar', 'bar' => 'baz']);
 });
 
-it('shows performance stats', function () {
-    $command = new class extends ConsoleCommand
-    {
-        protected $signature = 'example';
-
-        public function showPerformanceStats()
-        {
-            return true;
-        }
-
-        public function handle()
-        {
-        }
-    };
-
-    $command = new $command;
-    $command->setLaravel($this->container);
-    $output = new BufferedOutput();
-
-    $input = new ArrayInput([]);
-
-    $status = $command->run($input, $output);
-    expect($status)->toBe(0);
-    $commandOutput = $output->fetch();
-    preg_match("/PEFORMANCE  Memory: [0-9]+\.[0-9]{1,2}(.+)|Execution Time: [0-9]+\.[0-9]{1,2}ms/", $commandOutput, $matches);
-
-    $this->assertStringContainsString(
-        trim($commandOutput),
-        trim($matches[0])
-    );
-});
 
 it('checks requirements', function () {
     $command = new class extends ConsoleCommand

@@ -43,6 +43,7 @@ if (class_exists(LaravelZeroCommand::class)) {
 abstract class Command extends BaseCommand
 {
     use FromPropertyOrMethod, UsesTransformer;
+
     /**
      * The merged options and arguments.
      *
@@ -63,7 +64,7 @@ abstract class Command extends BaseCommand
      * @var array
      */
     protected array $commandTokens = [];
-  
+
     /**
      * The options that were arbitrary.
      *
@@ -74,17 +75,16 @@ abstract class Command extends BaseCommand
     /**
      * Whether tasks are executed concurrently.
      *
-     * @var boolean
+     * @var bool
      */
     protected static $concurrentTasks = true;
 
     /**
      * Whether to cast date inputs to carbon instances.
      *
-     * @var boolean
+     * @var bool
      */
     protected bool $castDatesToCarbon = true;
-
 
     /**
      * Construct a new command instance.
@@ -92,23 +92,9 @@ abstract class Command extends BaseCommand
     public function __construct()
     {
         parent::__construct();
-        
+
         $this->arbitraryData = collect();
 
-        $mergedData = array_merge($this->arguments(), $this->options());
-
-        if($this->castDatesToCarbon){
-            try {
-                $mergedData = (new DataTransformer($mergedData, ['*date*' => ['?', Carbon::class]]))->transform();
-            } catch (InvalidFormatException $e) {
-                $this->exit($e->getMessage());
-            }
-        }
-
-        $this->data = collect($mergedData)->filter(function ($v) {
-            return ! is_null($v);
-        });
-        
         if ($this->fromPropertyOrMethod('arbitraryOptions', false)) {
             $this->ignoreValidationErrors();
         }
@@ -124,7 +110,7 @@ abstract class Command extends BaseCommand
         static::$concurrentTasks = false;
     }
 
-     /**
+    /**
      * Set that tasks run concurrently.
      *
      * @return void
@@ -147,9 +133,9 @@ abstract class Command extends BaseCommand
     /**
      * Check if a class uses a given trait.
      *
-     * @param mixed $class
-     * @param string $trait
-     * @return boolean
+     * @param  mixed  $class
+     * @param  string  $trait
+     * @return bool
      */
     protected function classUsesTrait($class, string $trait): bool
     {
@@ -159,10 +145,11 @@ abstract class Command extends BaseCommand
     /**
      * Throw an ExitCommandException.
      *
-     * @param string $error
-     * @param integer $code
-     * @param string $level
+     * @param  string  $error
+     * @param  int  $code
+     * @param  string  $level
      * @return void
+     *
      * @throws \Surgiie\Console\Exceptions\ExitCommandException
      */
     protected function exit(string $error = '', int $code = 1, string $level = 'error'): void
@@ -173,9 +160,9 @@ abstract class Command extends BaseCommand
     /**
      * Renders a console view with termwind renderer.
      *
-     * @param string $view
-     * @param array $data
-     * @param int $verbosity
+     * @param  string  $view
+     * @param  array  $data
+     * @param  int  $verbosity
      * @return void
      */
     protected function consoleView(string $view, array $data, int $verbosity = OutputInterface::VERBOSITY_NORMAL)
@@ -217,7 +204,6 @@ abstract class Command extends BaseCommand
         }
     }
 
-  
     /**
      * Hide terminal cursor if the terminal supports escape sequences.
      *
@@ -229,8 +215,9 @@ abstract class Command extends BaseCommand
             $this->output->write("\e[?25l");
         }
     }
+
     /**
-     * Unhide terminal cursor if the terminal supports escape 
+     * Unhide terminal cursor if the terminal supports escape
      * sequences and assuming the cursor is currently hidden.
      *
      * @return void
@@ -257,13 +244,13 @@ abstract class Command extends BaseCommand
     /**
      * Get a cached value from the cache array or set it in cache with the given callback.
      *
-     * @param string $key
-     * @param Closure|null $createWith
+     * @param  string  $key
+     * @param  Closure|null  $createWith
      * @return mixed
      */
     public function fromArrayCache(string $key, ?Closure $createWith = null)
     {
-        if (! $this->hasArrayCachedValue($key)) {
+        if (! $this->hasArrayCacheValue($key)) {
             return  $this->cache[$key] = $createWith();
         }
 
@@ -273,10 +260,10 @@ abstract class Command extends BaseCommand
     /**
      * Get a cached value from the cache array.
      *
-     * @param string $key
-     * @return boolean
+     * @param  string  $key
+     * @return bool
      */
-    public function hasArrayCachedValue(string $key)
+    public function hasArrayCacheValue(string $key)
     {
         return array_key_exists($key, $this->cache);
     }
@@ -288,7 +275,7 @@ abstract class Command extends BaseCommand
      */
     protected function blade(): Blade
     {
-        $blade = $this->getCachedValue('blade', fn () => new Blade(
+        $blade = $this->fromArrayCache('blade', fn () => new Blade(
             container: $this->laravel,
             filesystem: new Filesystem,
         ));
@@ -306,22 +293,28 @@ abstract class Command extends BaseCommand
     /**
      * Compile a textual file with blade using the given path and data.
      *
-     * @param string $path
-     * @param array $data
+     * @param  string  $path
+     * @param  array  $data
+     * @param  bool  $removeCompiledFile
      * @return string
      */
-    public function compile(string $path, array $data = []): string
+    public function compile(string $path, array $data = [], bool $removeCompiledFile = false): string
     {
-        return $this->blade()->compile($path, $data);
+        $blade = $this->blade();
+        $result = $blade->compile($path, $data);
+
+        @unlink($blade->getCompiledPath());
+      
+        return $result;
     }
 
     /**
      * Output a message using the view console components.
      *
-     * @param string $title
-     * @param string $content
-     * @param string $bg
-     * @param string $fg
+     * @param  string  $title
+     * @param  string  $content
+     * @param  string  $bg
+     * @param  string  $fg
      * @return void
      */
     public function message(string $title, string $content, string $bg = 'gray', string $fg = 'white')
@@ -338,8 +331,8 @@ abstract class Command extends BaseCommand
     /**
      * Print a debug view console component message if a debug option exists on the command.
      *
-     * @param string $message
-     * @param boolean $clearLine
+     * @param  string  $message
+     * @param  bool  $clearLine
      * @return void
      */
     protected function debug(string $message, bool $clearLine = false)
@@ -355,11 +348,11 @@ abstract class Command extends BaseCommand
     /**
      * Return the merged options and arguments data collection or a value from it if a key is passed.
      *
-     * @param string|null $key
-     * @param mixed $default
-     * @return \Illuminate\Support\Collection
+     * @param  string|null  $key
+     * @param  mixed  $default
+     * @return \Illuminate\Support\Collection|mixed
      */
-    public function getData(?string $key = null, $default = null): Collection
+    public function getData(?string $key = null, $default = null)
     {
         if (is_null($key)) {
             return $this->data;
@@ -371,9 +364,9 @@ abstract class Command extends BaseCommand
     /**
      * Return the arbitrary data collection or a value from it if a key is passed.
      *
-     * @param string|null $key
-     * @param mixed $default
-     * @return \Illuminate\Support\Collection
+     * @param  string|null  $key
+     * @param  mixed  $default
+     * @return \Illuminate\Support\Collection|mixed
      */
     public function getArbitraryData(?string $key = null, $default = null)
     {
@@ -399,9 +392,9 @@ abstract class Command extends BaseCommand
     {
         $task = $this->laravel->make(Task::class, ['title' => $title, 'command' => $this, 'callback' => $task]);
 
-        if(static::$concurrentTasks == false || ! $this->pctnlIsLoaded()){
+        if (static::$concurrentTasks == false || ! $this->pctnlIsLoaded()) {
             $task->runNonConcurrently();
-        }else{
+        } else {
             $task->run();
         }
 
@@ -415,10 +408,10 @@ abstract class Command extends BaseCommand
 
     /**
      * Parse an array input interface for tokens.
-     * 
+     *
      * This will only be the case when running tests.
      *
-     * @param InputInterface $input
+     * @param  InputInterface  $input
      * @return array
      */
     protected function parseArrayInputInterfaceTokens(InputInterface $input): array
@@ -440,8 +433,8 @@ abstract class Command extends BaseCommand
 
     /**
      * Check if an option was passed in the terminal/command call.
-     * 
-     * @param string $name
+     *
+     * @param  string  $name
      * @return bool
      */
     protected function optionWasPassed(string $name): bool
@@ -449,19 +442,18 @@ abstract class Command extends BaseCommand
         return in_array($name, $this->commandTokens) || in_array("--$name", $this->commandTokens);
     }
 
-
     /**
      * Initialize the command for execution.
      *
-     * @param InputInterface $input
-     * @param OutputInterface $output
+     * @param  InputInterface  $input
+     * @param  OutputInterface  $output
      * @return void
      */
     protected function initialize(InputInterface $input, OutputInterface $output): void
     {
         try {
             $this->commandTokens = invade($input)->tokens;
-        }catch (ReflectionException) {
+        } catch (ReflectionException) {
             if ($input instanceof ArrayInput) {
                 $this->commandTokens = $this->parseArrayInputInterfaceTokens($input);
             }
@@ -480,13 +472,27 @@ abstract class Command extends BaseCommand
             //rebind input definition
             $input->bind($definition);
         }
+
+        $mergedData = array_merge($this->arguments(), $this->options());
+
+        if ($this->castDatesToCarbon) {
+            try {
+                $mergedData = (new DataTransformer($mergedData, ['*date*' => ['?', Carbon::class]]))->transform();
+            } catch (InvalidFormatException $e) {
+                $this->exit($e->getMessage());
+            }
+        }
+
+        $this->data = collect($mergedData)->filter(function ($v) {
+            return ! is_null($v);
+        });
     }
 
     /**
      * Ask for input with the given name or ask user for it if empty.
      *
-     * @param string $name
-     * @param array $options
+     * @param  string  $name
+     * @param  array  $options
      * @return string
      */
     protected function getOrAskForInput(string $name, array $options = [])
@@ -502,10 +508,9 @@ abstract class Command extends BaseCommand
         $attributes = $options['attributes'] ?? [];
         $transformers = $options['transformers'] ?? [];
         $transformersAfterValidation = $options['transformersAfterValidation'] ?? [];
-        
+
         $secret = $options['secret'] ?? false;
         $confirm = $options['confirm'] ?? false;
-        
 
         $validate = function ($input) use ($name, $rules, $messages, $attributes) {
             if ($this->classUsesTrait($this, WithValidation::class)) {
@@ -557,14 +562,10 @@ abstract class Command extends BaseCommand
         if (is_callable($requirement)) {
             $error = $requirement();
         } elseif ($isString && method_exists($this, $requirement)) {
-
             $error = $this->laravel->call([$this, $requirement]);
-
         } elseif ($isString && class_exists($requirement)) {
-            
             $instance = $this->laravel->make($requirement);
             $error = $this->laravel->call($instance);
-
         } elseif ($isString) {
             $process = (new Process(['which', $requirement]));
 
@@ -630,10 +631,8 @@ abstract class Command extends BaseCommand
                 $status = $this->executeCommand();
             });
 
-
             return $status;
         } catch (ExitCommandException $e) {
-
             $level = $e->getLevel();
 
             $this->components->$level($e->getMessage());
@@ -641,8 +640,6 @@ abstract class Command extends BaseCommand
             return $e->getStatus();
         }
     }
-
-  
 
     /**
      * Validate the current data for options and arguments.
@@ -664,8 +661,8 @@ abstract class Command extends BaseCommand
     /**
      * Display the validation errors that exist on the given validator.
      *
-     * @param Validator $validator
-     * @param boolean $isUserInput
+     * @param  Validator  $validator
+     * @param  bool  $isUserInput
      * @return void
      */
     protected function displayValidationErrors(Validator $validator, bool $isUserInput = false)

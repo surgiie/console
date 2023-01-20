@@ -70,7 +70,7 @@ Helpful for caching instances into a array property if going to be called repeat
 
 protected function example()
 {
-    // get a property or store it if it doesnt exist
+    // get a value or store it in the cache array if it doesnt exist
     return $this->fromArrayCache('example', fn () => new Example);
 }
 ```

@@ -105,12 +105,12 @@ it('can run task with data', function () {
         public function handle()
         {
             $task = $this->runTask('Doing something', function ($task) {
-                $task->data(['foo' => 'bar']);
+                $task->remember(['foo' => 'bar']);
 
                 return true;
             });
 
-            file_put_contents(test_mock_file_path('task-data'), json_encode($task->getData()));
+            file_put_contents(test_mock_file_path('task-data'), json_encode($task->data()));
         }
     };
 
@@ -136,47 +136,6 @@ it('can run task with data', function () {
     expect(json_decode(file_get_contents(test_mock_file_path('task-data')), true))->toBe(['foo' => 'bar']);
 });
 
-it('can run backup task when pctnl is not loaded', function () {
-    $command = new class extends ConsoleCommand
-    {
-        protected $signature = 'example';
-
-        public function handle()
-        {
-            $task = $this->runTask('Doing something', function ($task) {
-                return true;
-            });
-
-            file_put_contents(test_mock_file_path('test-task-data'), json_encode([
-                'class' => get_class($task),
-                'succeeded' => $task->succeeded(),
-            ]));
-        }
-    };
-
-    $outputMock = m::mock(OutputStyle::class);
-    $commandMock = m::mock(get_class($command).'[pctnlIsLoaded]');
-    $commandMock->shouldReceive('pctnlIsLoaded')->andReturn(false);
-    $commandMock->setOutput($outputMock);
-
-    $this->container->bind(OutputStyle::class, function () use ($outputMock) {
-        return $outputMock;
-    });
-
-    $commandMock->setLaravel($this->container);
-
-    $outputMock
-        ->shouldReceive('isDecorated')
-        ->andReturn(true)
-        ->shouldReceive('write')
-        ->shouldReceive('writeln')
-        ->andReturn('Finished - [Doing Something]');
-
-    $commandMock->run(new ArrayInput([]), $outputMock);
-    $data = json_decode(file_get_contents(test_mock_file_path('test-task-data')), true);
-
-    expect($data['class'])->toBe(BackupCommandTask::class);
-});
 it('can have transformers', function () {
     $command = new class extends ConsoleCommand
     {
@@ -330,7 +289,7 @@ it('can confirm ask for input.', function () {
 
         public function handle()
         {
-            $this->getOrAskForInput('foo', confirm: true);
+            $this->getOrAskForInput('foo', ['confirm'=>true]);
         }
     };
 
@@ -364,8 +323,8 @@ it('can ask for input and validate', function () {
 
         public function handle()
         {
-            $this->getOrAskForInput('dooms-day', rules: [
-                'date',
+            $this->getOrAskForInput('dooms-day', [
+                'rules'=>['date']
             ]);
         }
     };
@@ -399,9 +358,10 @@ it('can ask for input and transform', function () {
 
         public function handle()
         {
-            $this->getOrAskForInput('number', rules: [
-                'numeric',
-            ], transformers: ['number' => 'intval']);
+            $this->getOrAskForInput('number', [
+                'transformers'=> ['number' => 'intval'],
+                'rules'=>['numeric'],
+            ]);
         }
     };
 
