@@ -9,7 +9,9 @@ use Symfony\Component\Console\Input\InputOption;
 class OptionsParser
 {
     /**
-     * The options to parse.
+     * The options being parsed.
+     *
+     * @var array
      */
     protected array $options = [];
 
@@ -23,6 +25,9 @@ class OptionsParser
 
     /**
      * Set the options to parse.
+     *
+     * @param array $options
+     * @return static
      */
     public function setOptions(array $options): static
     {
@@ -32,9 +37,13 @@ class OptionsParser
     }
 
     /**
-     * Parse a token for an --option or --option=value format.
+     * Check if a token is --option or --option=value 
+     * format and return the matched array.
+     *
+     * @param string $token
+     * @return array
      */
-    protected function parseOption(string $token): array
+    protected function isOptionToken(string $token): array
     {
         // match for a --option or --option=value string.
         preg_match('/--([^=]+)(=)?(.*)/', $token, $match);
@@ -49,7 +58,7 @@ class OptionsParser
     {
         $options = [];
         foreach ($this->options as $token) {
-            $match = $this->parseOption($token);
+            $match = $this->isOptionToken($token);
 
             if (! $match) {
                 continue;

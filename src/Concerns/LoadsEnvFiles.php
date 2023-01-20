@@ -8,9 +8,10 @@ use InvalidArgumentException;
 trait LoadsEnvFiles
 {
     /**
-     * Loads a env file and returns parsed data as an array.
-     * The variables are NOT loaded into $_ENV global, simply
-     * parsed from file and returned.
+     * Parse an env file and returns parsed data as an array.
+     *
+     * @param string $path
+     * @return array
      */
     public function getEnvFileVariables(string $path): array
     {

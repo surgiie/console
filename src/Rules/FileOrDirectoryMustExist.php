@@ -4,12 +4,20 @@ namespace Surgiie\Console\Rules;
 
 use Illuminate\Contracts\Validation\InvokableRule;
 
-class IsExecutable implements InvokableRule
+class FileOrDirectoryMustExist implements InvokableRule
 {
-    /**The error message. */
-    protected string $error = 'The :name :type is not executable.';
+    /**
+     * The error message when validation fails.
+     *
+     * @var string
+     */
+    protected string $error = 'The :name :type file or directory does not exist.';
 
-    /**Construct new Rule instance.*/
+    /**
+     * Construct new FileOrDirectoryMustExist instance.
+     *
+     * @param string|null $error
+     */
     public function __construct(?string $error = null)
     {
         if (! is_null($error)) {
@@ -18,7 +26,7 @@ class IsExecutable implements InvokableRule
     }
 
     /**
-     * Run the validation rule.
+     * Check if the validation rule passes.
      *
      * @param  string  $attribute
      * @param  mixed  $value
@@ -27,7 +35,7 @@ class IsExecutable implements InvokableRule
      */
     public function __invoke($attribute, $value, $fail)
     {
-        if (! is_executable($value)) {
+        if (! file_exists($value)) {
             $fail($this->error);
         }
     }

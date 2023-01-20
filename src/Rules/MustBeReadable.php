@@ -4,12 +4,20 @@ namespace Surgiie\Console\Rules;
 
 use Illuminate\Contracts\Validation\InvokableRule;
 
-class IsDirectory implements InvokableRule
+class MustBeReadable implements InvokableRule
 {
-    /**The error message. */
-    protected string $error = 'The :name :type directory does not exist.';
+    /**
+     * The error message when validation fails.
+     *
+     * @var string
+     */
+    protected string $error = 'The :name :type is not readable.';
 
-    /**Construct new Rule instance.*/
+    /**
+     * Construct new MustBeReadable instance.
+     *
+     * @param string|null $error
+     */
     public function __construct(?string $error = null)
     {
         if (! is_null($error)) {
@@ -18,7 +26,7 @@ class IsDirectory implements InvokableRule
     }
 
     /**
-     * Run the validation rule.
+     * Check if the validation rule passes.
      *
      * @param  string  $attribute
      * @param  mixed  $value
@@ -27,7 +35,7 @@ class IsDirectory implements InvokableRule
      */
     public function __invoke($attribute, $value, $fail)
     {
-        if (! is_dir($value)) {
+        if (! is_readable($value)) {
             $fail($this->error);
         }
     }

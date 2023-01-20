@@ -8,13 +8,21 @@ trait WithTransformers
 {
     use UsesTransformer;
 
-    /**Specify transformers for arguments and options.*/
-    protected function transformers()
+    /**
+     * The transformer or casts to run on command data.
+     *
+     * @return array
+     */
+    protected function transformers(): array
     {
         return [];
     }
 
-    /**Specify transformers for arguments and options after validation.*/
+    /**
+     * The transformer or casts to run on command data after validation.
+     *
+     * @return array
+     */
     protected function transformersAfterValidation()
     {
         return [];

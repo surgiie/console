@@ -6,7 +6,14 @@ use InvalidArgumentException;
 
 trait FromPropertyOrMethod
 {
-    /**Get the value of a property or method where property is prioritized.*/
+    
+    /**
+     * Get the value of a property or method where property is prioritized.
+     *
+     * @param string $name
+     * @param mixed $default
+     * @return mixed
+     */
     protected function fromPropertyOrMethod(string $name, $default = null)
     {
         if (property_exists($this, $name)) {

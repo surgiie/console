@@ -2,67 +2,310 @@
 
 namespace Surgiie\Console\Support;
 
+use Phar;
 use Closure;
-use Illuminate\Console\OutputStyle;
+use Spatie\Fork\Fork;
 use Illuminate\Support\Str;
 use Surgiie\Console\Command;
 
-abstract class Task
+class Task
 {
-    /**The title of the task.*/
+    /**
+     * The title of the task for the console output.
+     *
+     * @var string
+     */
+    protected string $id;
+
+    /**
+     * The id of the task.
+     *
+     * @var string
+     */
     protected string $title;
 
-    /** The command running this task. */
+    /**
+     * The spinner characters to use for loader.
+     *
+     * @var array
+     */
+    protected static array $spinnerFrames = [
+        '⠇',
+        '⠋',
+        '⠙',
+        '⠸',
+        '⠴',
+        '⠦',
+    ];
+
+    /**
+     * The command instance that is runnning this task.
+     *
+     * @var Surgiie\Console\Command
+     */
     protected Command $command;
 
-    /**The task function we are executing.*/
+    /**
+     * The task function being executed.
+     *
+     * @var Closure
+     */
     protected Closure $callback;
 
-    /**The console ouptut.*/
-    protected OutputStyle $output;
 
-    /**Persisted data from task. */
+    /**
+     * Data that is persisted from the task when running
+     * task concurrently with the spatie/fork package.
+     *
+     * @var array
+     */
     protected array $taskData = [];
 
-    /**Whether the task was succesful.*/
-    protected $succesful = false;
+    /**
+     * Whether the task was succesful.
+     *
+     * @var boolean
+     */
+    protected bool $succesful = false;
 
+    /**
+     * Construct a new Task instance.
+     *
+     * @param string $title
+     * @param \Surgiie\Console\Command $command
+     * @param \Closure $callback
+     */
     public function __construct(string $title, Command $command, Closure $callback)
     {
         $this->title = $title;
         $this->command = $command;
         $this->callback = $callback;
         $this->id = Str::uuid();
-        $this->executionTime = '';
-        $this->output = $command->getConsoleOutput();
     }
 
-    /**Set data for the task */
-    public function data(array $data): static
+    /**
+     * Remember data when running concurrently.
+     *
+     * @param array $data.
+     * @return static
+     */
+    public function remember(array $data): static
     {
         $this->taskData = array_merge($this->taskData, $data);
 
         return $this;
     }
-
-    /**Get the id of the task.*/
-    public function getId()
+    /**
+     * The uuid of the task. 
+     *
+     * @return string
+     */
+    public function getId(): string
     {
         return $this->id;
     }
 
-    /**Get the task data.*/
-    public function getData()
+    /**
+     * Get the remembered data.
+     *
+     * @return array
+     */
+    public function data(): array
     {
         return $this->taskData;
     }
 
-    /**Whether the task was successful.*/
-    public function succeeded()
+    /**
+     * Check if the task succeeded.
+     *
+     * @return bool
+     */
+    public function succeeded(): bool
     {
         return $this->succesful === null || $this->succesful === true;
     }
 
-    /**Run the task callback */
-    abstract public function run();
+ 
+    /**
+     * Run the task non concurrently. 
+     *
+     * @return static
+     */
+    public function runNonConcurrently()
+    {
+        $output = $this->command->getOutputStyle();
+
+        $callback = $this->callback;
+
+        $output->write($this->title.': <comment>loading...</comment>');
+
+        $this->succesful = $callback($this);
+
+        if ($output->isDecorated()) {
+            $this->command->clearTerminalLine();
+        } else {
+            $output->writeln('');
+        }
+
+        return $this;
+    }
+
+    /**
+     * Run the task concurrently.
+     *
+     * @return static
+     */
+    public function run()
+    {
+        $output = $this->command->getOutputStyle();
+
+        $output->writeln('  Running: '.$this->title);
+
+        $results = Fork::new()
+            ->before(fn () => $this->startConcurrentRun())
+            ->run(
+                // show a spinner in parent process
+                function () {
+                    $this->command->hideCursor();
+        
+                    while ($this->runningConcurrently()) {
+                        foreach (static::$spinnerFrames as $frame) {
+                            $this->command->clearTerminalLine();
+                            
+                            $output->write('  '.$frame);
+        
+                            usleep(100000);
+                        }
+                    }
+
+                    $this->command->uhideCursor();
+
+                    $this->command->clearTerminalLine();
+                },
+                // while child process executes the callback.
+                function () {
+                    try {
+                        $callback = $this->callback;
+
+                        $result = $callback($this);
+
+                        $this->removeConcurrentTaskFile();
+
+                        $this->writeStateFile($this->taskData);
+
+                        return $result;
+                    } catch(\Throwable $e) {
+                        $this->removeConcurrentTaskFile();
+                        $this->removeConcurrentTaskStateFile();
+
+                        throw $e;
+                    }
+                }
+            );
+
+        $this->command->erasePreviousLine();
+        
+        $this->succesful = $results[1];
+
+        $this->removeConcurrentTaskStateFile();
+
+        return $this;
+    }
+
+    /**
+     * Write task state file with the given data. 
+     *
+     * @param array $data
+     * @return int
+     */
+    protected function writeStateFile(array $data = []): int
+    {
+        return file_put_contents($this->taskStateFilePath(), serialize($data));
+    }
+
+    /**
+     * Remove concurrent task flag file.
+     *
+     * @return boolean
+     */
+    protected function removeConcurrentTaskFile(): bool
+    {
+        return @unlink($this->taskFlagFilePath());
+    }
+
+    /**
+     * Remove concurrent task state file.
+     *
+     * @return boolean
+     */
+    protected function removeConcurrentTaskStateFile(): bool
+    {
+        $stateFile = $this->taskStateFilePath();
+
+        if (is_file($stateFile)) {
+            $this->taskData = unserialize(file_get_contents($stateFile));
+            return unlink($stateFile);
+        }
+
+        return false;
+    }
+
+
+    /**
+     * Determine whether the concurrent task is still running via flag file.
+     *
+     * @return boolean
+     */
+    protected function runningConcurrently(): bool
+    {
+        return file_exists($this->taskFlagFilePath());
+    }
+
+
+    /**
+     * Set the characters to use for loader spinner
+     *
+     * @param array $frames
+     * @return void
+     */
+    public static function setSpinnerFrames(array $frames): void
+    {
+        static::$spinnerFrames = $frames;
+    }
+
+ 
+    /**
+     * Return path to the task flag file.
+     *
+     * @return string
+     */
+    protected function taskFlagFilePath(): string
+    {
+        if ($phar = Phar::running(false)) {
+            return dirname($phar).'/console-tasks/'.$this->id;
+        }
+
+        return storage_path('app/console-tasks/'.$this->id);
+    }
+    /**
+     * Return path to the task state file.
+     *
+     * @return string
+     */
+    protected function taskStateFilePath(): string
+    {
+        return $this->taskFlagFilePath().".state";
+    }
+
+    /**
+     * Save the file that signifies if we are starting the task.
+     *
+     * @return bool
+     */
+    private function startConcurrentRun(): bool
+    {
+        @mkdir(dirname($path = $this->taskFlagFilePath()), recursive: true);
+
+        return touch($path);
+    }
 }

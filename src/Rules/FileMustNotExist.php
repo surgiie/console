@@ -6,10 +6,18 @@ use Illuminate\Contracts\Validation\InvokableRule;
 
 class FileMustNotExist implements InvokableRule
 {
-    /**The error message. */
+   /**
+     * The error message when validation fails.
+     *
+     * @var string
+     */
     protected string $error = 'The :name :type already exists.';
 
-    /**Construct new Rule instance.*/
+   /**
+     * Construct new FileMustNotExist instance.
+     *
+     * @param string|null $error
+     */
     public function __construct(?string $error = null)
     {
         if (! is_null($error)) {
@@ -18,7 +26,7 @@ class FileMustNotExist implements InvokableRule
     }
 
     /**
-     * Run the validation rule.
+     * Check if the validation rule passes.
      *
      * @param  string  $attribute
      * @param  mixed  $value

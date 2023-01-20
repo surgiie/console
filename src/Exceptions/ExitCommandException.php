@@ -6,6 +6,13 @@ use Exception;
 
 class ExitCommandException extends Exception
 {
+    /**
+     * Construct a new ExitCommandException instance.
+     *
+     * @param string $message
+     * @param integer $status
+     * @param string $level
+     */
     public function __construct(string $message, int $status = 1, string $level = 'error')
     {
         $this->message = $message;
@@ -13,13 +20,21 @@ class ExitCommandException extends Exception
         $this->level = $level;
     }
 
-    /**Get the level to use for the exit exception message.*/
+    /**
+     * Get the message level to use for the exit exception message.
+     *
+     * @return void
+     */
     public function getLevel()
     {
         return $this->level;
     }
 
-    /**Get the status code.*/
+    /**
+     * Get the status code to exit with.
+     *
+     * @return integer
+     */
     public function getStatus(): int
     {
         return $this->status;

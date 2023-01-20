@@ -35,15 +35,43 @@ class ExampleCommand extends Command
 
 ```
 
-### Store Values for performance
+### Check if options were passed:
+```php
 
-Helpful for caching instances into a property if going to be called repeatedly.
+<?php
+
+namespace App\Console\Commands;
+
+use Surgiie\Console\Command;
+use Surgiie\Console\Concerns\WithValidation;
+
+class ExampleCommand extends Command
+{
+    protected $signature = "example {--iterations=}";
+
+    public function handle()
+    {   
+        // check if the user passed the --iterations flag in the command call.
+        if($this->optionWasPassed("iterations")){
+
+        }
+    }
+}
+
+
+```
+
+
+### Store values for performance into cache array
+
+Helpful for caching instances into a array property if going to be called repeatedly.
+
 ```php
 
 protected function example()
 {
     // get a property or store it if it doesnt exist
-    return $this->getProperty('example', fn () => new Example);
+    return $this->fromArrayCache('example', fn () => new Example);
 }
 ```
 ### Validation
@@ -67,7 +95,7 @@ class ExampleCommand extends Command
     public function rules()
     {
         return [
-            'interations'=>'required|int'
+            'interations'=>'required|numeric'
         ];
     }
 
@@ -85,8 +113,6 @@ class ExampleCommand extends Command
 }
 ```
 
-
-### Get Or Ask For Input
 
 
 ### Arbitrary Options
@@ -115,23 +141,6 @@ class ExampleCommand extends Command
 }
 
 ```
-### Show Peformance & Memory Usage
-
-At the end of your command, you will have a line message showing more info about how your command performed:
-
-`PEFORMANCE  Memory: 9.60MB|Execution Time: 1.56ms`
-
-By setting this option within your command:
-
-```php
-
-public function showPerformanceStats()
-{
-    return true;
-}
-
-```
-
 
 
 ### Argument & Option Transformation/Formatting
@@ -162,6 +171,43 @@ protected function transformersAfterValidation()
 
 * All options with "date" in their name, are automatically converted to `\Carbon\Carbon` instances.
 
+### Get Or Ask For Input
+
+Get the value of an input or option or ask the user to input it if empty:
+
+```php
+
+<?php
+namespace App\Console\Commands;
+
+use Surgiie\Console\Command;
+
+class ExampleCommand extends Command
+{
+
+    protected $signature = "example {--name=}";
+
+    public function handle()
+    {
+        // user will be asked if --name was not passed/set:
+        $something = $this->getOrAskForInput("name")
+
+        $something = $this->getOrAskForInput("name", [
+            // can use with validation:
+            'rules'=> ['required', 'max:20'],
+            // can use transformers:
+            'transformers'=> ['trim', 'strtoupper'],
+            'transformersAfterValidation'=> ['trim', 'strtoupper'],
+            // have user confirm by asking for value twice until values match:
+            'confirm'=>true,
+            // hide input
+            'secret'=>true,
+        ]);
+
+}
+
+```
+
 ### Check Requirements
 Provide a list of requirements before the handle is called:
 
@@ -178,7 +224,7 @@ Provide a list of requirements before the handle is called:
     public function requirements()
     {
         return [
-            'docker', //default for a string value checks if 'docker' is in $PATH with `which docker`
+            'docker', //default for a string value checks if 'docker' is in $PATH with `which <value>`
             "requireSomethingOrFail", //unless the method exists on the class, it will call that instead
             function () { // can use callback that returns an error string
                 $process = new Process(['docker', 'info']);
@@ -193,50 +239,8 @@ Provide a list of requirements before the handle is called:
         ];
     }
 ```
-**Note** If any of the methods above dont resolve to a `$PATH` available dependency or return a string/raise exception, the handle method will not be called and the returned error will be displayed.
+**Note** If any of the methods above return an error string or raise `FailedRequirementException`, the `handle` method will not be called.
 
-### Asking For Input Helper
-
-```php
-
-<?php
-
-namespace App\Console\Commands;
-
-use Surgiie\Console\Command;
-use Surgiie\Console\Concerns\WithValidation;
-
-class ExampleCommand extends Command
-{
-    use WithValidation;
-
-    protected $signature = 'example {--example=}{--key=}';
-
-    public function rules()
-    {
-        // nullable/optional but if given validate options
-        return ['example'=>['nullable', 'max:30'], 'key'=>'nullable|size:32'];
-    }
-
-    public function handle()
-    {
-        // get the example option value or ask for it if not already present.
-        // by setting the option rules as nullable, you can optionally accept the option
-        // but will ask for it if not given.
-        $example = $this->getOrAskForInput('example');
-        // you can also use validation if the WithValidation trait is available.
-        // this will exit with an error if rules fail.
-        $example = $this->getOrAskForInput('example', rules: ['required', 'max:30']);
-
-        // you can ask for secret input as well
-        $key = $this->getOrAskForInput('key', secret: true);
-
-        // you can also keep asking for the user to confirm input until original input and confirmation match.
-        $key = $this->getOrAskForInput('key', secret: true, confirm: true);
-    }
-}
-
-```
 
 ### Render Files With Blade Engine:
 An exented version of the blade engine is available to compile any textual file:
@@ -253,8 +257,8 @@ public function handle()
 
 
 
-### Run Task With Spinner/Loader
-To give users of your a better experience for tasks, you may desire to show a nice spinner animation, Note that in order to achieve a spinner animation while running the task, 2 child PHP processes are used via [spatie/fork](https://github.com/spatie/fork), one process is for the spinner animation and one for the task function you pass in. This requires the terminal to support escape sequence and the PCNTL extenion must be installed. This feature is only supported on unix based os's and on windows a plain "Loading.." task will be fallen back to. 
+### Run Tasks Concurrently With A Loader
+To give users of your a better visual experience for tasks, you may desire to show a nice spinner animation, Note that in order to achieve a spinner animation while running the task, 2 child PHP processes are used via [spatie/fork](https://github.com/spatie/fork), one process is for the spinner animation and one for the task function you pass in. This relies on escape sequences and the php `pcntl` extenion. This feature is only supported on unix based os's and on windows, this will not run the task concucrrently.
 
 ```php
 $task = $this->runTask("Doing stuff...", function($task){
@@ -279,18 +283,18 @@ $this->runTask("Doing stuff...", function($task) use (&$data){
 dd($data); // still empty [] array. :/
 ```
 
-To get around this limitation, you may use the `data` method on the task object passed into the callback to persist any serializable data:
+To get around this limitation, you may use the `remember` method on the task object passed into the callback to persist any serializable data:
 
 ```php
 $data = [];
 $task = $this->runTask("Doing stuff....", function($task){
-    $task->data(['foo'=>'bar']);
+    $task->remember(['foo'=>'bar']);
     return true;
 });
-dd($task->getData()); // ['foo'=>'bar']
+dd($task->data()); // ['foo'=>'bar']
 ```
 
 This works by using `serialize` on the data and writing it to a temporary file within your application's storage directory then calls `unserialize` on the data back in the parent process.
 
 
-**Note** If prefer plain task with a "Loading..." text and not running in a separate process as mentioned above, this functionality can be disabled with `Surgiie\Console\Command::disableAsyncTask()` 
+**Note** If prefer not to run tasks concurrently or with a spinner as mentioned above, this functionality can be disabled with `Surgiie\Console\Command::disableConcurrentTasks()`. This is desired in tests as it prevents overhead when testing commands.

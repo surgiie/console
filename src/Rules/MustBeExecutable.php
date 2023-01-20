@@ -4,12 +4,20 @@ namespace Surgiie\Console\Rules;
 
 use Illuminate\Contracts\Validation\InvokableRule;
 
-class IsReadable implements InvokableRule
+class MustBeExecutable implements InvokableRule
 {
-    /**The error message. */
-    protected string $error = 'The :name :type is not readable.';
-
-    /**Construct new Rule instance.*/
+    /**
+     * The error message when validation fails.
+     *
+     * @var string
+     */
+    protected string $error = 'The :name :type is not executable.';
+    
+    /**
+     * Construct new MustBeExecutable instance.
+     *
+     * @param string|null $error
+     */
     public function __construct(?string $error = null)
     {
         if (! is_null($error)) {
@@ -18,7 +26,7 @@ class IsReadable implements InvokableRule
     }
 
     /**
-     * Run the validation rule.
+     * Check if the validation rule passes.
      *
      * @param  string  $attribute
      * @param  mixed  $value
@@ -27,7 +35,7 @@ class IsReadable implements InvokableRule
      */
     public function __invoke($attribute, $value, $fail)
     {
-        if (! is_readable($value)) {
+        if (! is_executable($value)) {
             $fail($this->error);
         }
     }

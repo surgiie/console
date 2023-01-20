@@ -8,9 +8,12 @@ use JsonException;
 trait LoadsJsonFiles
 {
     /**
-     * Get a more helpful json error.
+     * Format a json decode error to be more friendly.
+     *
+     * @param string $error
+     * @return string
      */
-    protected function getJsonParseError(string $error): string
+    protected function formatJsonParseError(string $error): string
     {
         switch ($error) {
             case JSON_ERROR_DEPTH:
@@ -42,7 +45,7 @@ trait LoadsJsonFiles
         $error = json_last_error();
 
         if (JSON_ERROR_NONE !== $error) {
-            throw new JsonException($this->getJsonParseError(json_last_error()));
+            throw new JsonException($this->formatJsonParseError(json_last_error()));
         }
 
         return $data;

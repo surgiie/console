@@ -13,12 +13,14 @@ use Illuminate\Support\Collection;
 use Illuminate\Validation\Validator;
 use InvalidArgumentException;
 use LaravelZero\Framework\Commands\Command as LaravelZeroCommand;
+use ReflectionException;
 use Surgiie\Blade\Blade;
 use Surgiie\Console\Concerns\FromPropertyOrMethod;
 use Surgiie\Console\Concerns\WithTransformers;
 use Surgiie\Console\Concerns\WithValidation;
 use Surgiie\Console\Exceptions\ExitCommandException;
 use Surgiie\Console\Exceptions\FailedRequirementException;
+use Surgiie\Console\Support\Task;
 use Surgiie\Transformer\Concerns\UsesTransformer;
 use Surgiie\Transformer\DataTransformer;
 use Symfony\Component\Console\Input\ArrayInput;
@@ -41,57 +43,127 @@ if (class_exists(LaravelZeroCommand::class)) {
 abstract class Command extends BaseCommand
 {
     use FromPropertyOrMethod, UsesTransformer;
-
-    /**The merged arguments and options.*/
+    /**
+     * The merged options and arguments.
+     *
+     * @var \Illuminate\Support\Collection
+     */
     protected Collection $data;
 
-    /**Allow async/pctnl task to be disabled. */
-    protected static $disabledAsyncTask = false;
+    /**
+     * Cached array for saving values repeatedly called.
+     *
+     * @var array
+     */
+    protected array $cache = [];
 
-    /**The data that was arbitrary.*/
+    /**
+     * The command tokens passed in the terminal.
+     *
+     * @var array
+     */
+    protected array $commandTokens = [];
+  
+    /**
+     * The options that were arbitrary.
+     *
+     * @var \Illuminate\Support\Collection
+     */
     protected Collection $arbitraryData;
 
-    /**Dynamic "properties".*/
-    protected array $properties = [];
+    /**
+     * Whether tasks are executed concurrently.
+     *
+     * @var boolean
+     */
+    protected static $concurrentTasks = true;
 
-    /**Construct a new Command instance.*/
+    /**
+     * Whether to cast date inputs to carbon instances.
+     *
+     * @var boolean
+     */
+    protected bool $castDatesToCarbon = true;
+
+
+    /**
+     * Construct a new command instance.
+     */
     public function __construct()
     {
         parent::__construct();
+        
+        $this->arbitraryData = collect();
 
+        $mergedData = array_merge($this->arguments(), $this->options());
+
+        if($this->castDatesToCarbon){
+            try {
+                $mergedData = (new DataTransformer($mergedData, ['*date*' => ['?', Carbon::class]]))->transform();
+            } catch (InvalidFormatException $e) {
+                $this->exit($e->getMessage());
+            }
+        }
+
+        $this->data = collect($mergedData)->filter(function ($v) {
+            return ! is_null($v);
+        });
+        
         if ($this->fromPropertyOrMethod('arbitraryOptions', false)) {
-            $this->arbitraryData = collect();
-
             $this->ignoreValidationErrors();
         }
     }
 
-    /**Disable the use of pctnl/async task.*/
-    public static function disableAsyncTask()
+    /**
+     * Set that tasks do not run concurrently.
+     *
+     * @return void
+     */
+    public static function disableConcurrentTasks()
     {
-        static::$disabledAsyncTask = true;
+        static::$concurrentTasks = false;
     }
 
-    /**Enable the use of pctnl/async task.*/
-    public static function enableAsyncTask()
+     /**
+     * Set that tasks run concurrently.
+     *
+     * @return void
+     */
+    public static function enableConcurrentTasks()
     {
-        static::$disabledAsyncTask = false;
+        static::$concurrentTasks = true;
     }
 
-    /**Get the console components instance.*/
-    public function getComponents()
+    /**
+     * Get the console view components instance.
+     *
+     * @return Illuminate\Console\View\Components;
+     */
+    public function consoleViewComponents()
     {
         return $this->components;
     }
 
-    /**Check if a class uses a given trait.*/
+    /**
+     * Check if a class uses a given trait.
+     *
+     * @param mixed $class
+     * @param string $trait
+     * @return boolean
+     */
     protected function classUsesTrait($class, string $trait): bool
     {
         return once(fn () => array_key_exists($trait, class_uses($class)));
     }
 
     /**
-     * Exit script with code and display optional error.
+     * Throw an ExitCommandException.
+     *
+     * @param string $error
+     * @param integer $code
+     * @param string $level
+     * @return void
+     * @throws \Surgiie\Console\Exceptions\ExitCommandException
      */
     protected function exit(string $error = '', int $code = 1, string $level = 'error'): void
     {
@@ -99,7 +171,12 @@ abstract class Command extends BaseCommand
     }
 
     /**
-     * Renders the given view.
+     * Renders a console view with termwind renderer.
+     *
+     * @param string $view
+     * @param array $data
+     * @param int $verbosity
+     * @return void
      */
     protected function consoleView(string $view, array $data, int $verbosity = OutputInterface::VERBOSITY_NORMAL)
     {
@@ -115,13 +192,21 @@ abstract class Command extends BaseCommand
         render((string) $this->compile($path, $data), $verbosity);
     }
 
-    /**Get the output object.*/
-    public function getConsoleOutput()
+    /**
+     * Get the output style instance.
+     *
+     * @return \Illuminate\Console\OutputStyle
+     */
+    public function getOutputStyle()
     {
         return $this->output;
     }
 
-    /**Clear console line.*/
+    /**
+     * Clear terminal line if the terminal supports escape sequences.
+     *
+     * @return void
+     */
     public function clearTerminalLine()
     {
         if ($this->output->isDecorated()) {
@@ -132,30 +217,83 @@ abstract class Command extends BaseCommand
         }
     }
 
-    /**Get a property or create it in our properties array using the given callback. */
-    public function getProperty(string $property, ?Closure $createWith = null)
+  
+    /**
+     * Hide terminal cursor if the terminal supports escape sequences.
+     *
+     * @return void
+     */
+    protected function hideCursor()
     {
-        if (! $this->hasProperty($property)) {
-            return  $this->properties[$property] = $createWith();
+        if ($this->output->isDecorated()) {
+            $this->output->write("\e[?25l");
+        }
+    }
+    /**
+     * Unhide terminal cursor if the terminal supports escape 
+     * sequences and assuming the cursor is currently hidden.
+     *
+     * @return void
+     */
+    protected function unhideCursor()
+    {
+        if ($this->output->isDecorated()) {
+            $this->output->write("\e[?25h");
+        }
+    }
+
+    /**
+     * Erase previous terminal line if the terminal supports escape sequences.
+     *
+     * @return void
+     */
+    protected function erasePreviousLine()
+    {
+        if ($this->output->isDecorated()) {
+            $this->output->write("\e[1A\e[K");
+        }
+    }
+
+    /**
+     * Get a cached value from the cache array or set it in cache with the given callback.
+     *
+     * @param string $key
+     * @param Closure|null $createWith
+     * @return mixed
+     */
+    public function fromArrayCache(string $key, ?Closure $createWith = null)
+    {
+        if (! $this->hasArrayCachedValue($key)) {
+            return  $this->cache[$key] = $createWith();
         }
 
-        return $this->properties[$property] ?? null;
+        return $this->cache[$key] ?? null;
     }
 
-    /**Get a property or create it in our properties array using the given callback. */
-    public function hasProperty(string $property)
+    /**
+     * Get a cached value from the cache array.
+     *
+     * @param string $key
+     * @return boolean
+     */
+    public function hasArrayCachedValue(string $key)
     {
-        return array_key_exists($property, $this->properties);
+        return array_key_exists($key, $this->cache);
     }
 
-    /**Return a new blade instance.*/
+    /**
+     * Return a blade engine for rendering textual files.
+     *
+     * @return \Surgiie\Blade\Blade
+     */
     protected function blade(): Blade
     {
-        $blade = $this->getProperty('blade', fn () => new Blade(
+        $blade = $this->getCachedValue('blade', fn () => new Blade(
             container: $this->laravel,
             filesystem: new Filesystem,
         ));
 
+        // if a compiled path is set on the application, set it.
         $compilePath = config('app.compiled_path');
 
         if (! is_null($compilePath)) {
@@ -165,13 +303,27 @@ abstract class Command extends BaseCommand
         return $blade;
     }
 
-    /**Compile a file using blade engine.*/
+    /**
+     * Compile a textual file with blade using the given path and data.
+     *
+     * @param string $path
+     * @param array $data
+     * @return string
+     */
     public function compile(string $path, array $data = []): string
     {
         return $this->blade()->compile($path, $data);
     }
 
-    /**$this->components->line(),but with the ability to edit color/title.*/
+    /**
+     * Output a message using the view console components.
+     *
+     * @param string $title
+     * @param string $content
+     * @param string $bg
+     * @param string $fg
+     * @return void
+     */
     public function message(string $title, string $content, string $bg = 'gray', string $fg = 'white')
     {
         $this->consoleView('line', [
@@ -183,7 +335,13 @@ abstract class Command extends BaseCommand
         ]);
     }
 
-    /**Print a debug message.*/
+    /**
+     * Print a debug view console component message if a debug option exists on the command.
+     *
+     * @param string $message
+     * @param boolean $clearLine
+     * @return void
+     */
     protected function debug(string $message, bool $clearLine = false)
     {
         if ($this->hasOption('debug') && $this->data->get('debug')) {
@@ -194,8 +352,14 @@ abstract class Command extends BaseCommand
         }
     }
 
-    /**Return data from merged data collection. */
-    public function getData(?string $key = null, $default = null)
+    /**
+     * Return the merged options and arguments data collection or a value from it if a key is passed.
+     *
+     * @param string|null $key
+     * @param mixed $default
+     * @return \Illuminate\Support\Collection
+     */
+    public function getData(?string $key = null, $default = null): Collection
     {
         if (is_null($key)) {
             return $this->data;
@@ -204,7 +368,13 @@ abstract class Command extends BaseCommand
         return $this->data->get($key, $default);
     }
 
-    /**Return data from arbitrary data collection. */
+    /**
+     * Return the arbitrary data collection or a value from it if a key is passed.
+     *
+     * @param string|null $key
+     * @param mixed $default
+     * @return \Illuminate\Support\Collection
+     */
     public function getArbitraryData(?string $key = null, $default = null)
     {
         if (is_null($key)) {
@@ -214,8 +384,12 @@ abstract class Command extends BaseCommand
         return $this->arbitraryData->get($key, $default);
     }
 
-    /**Check if the pctnl extension is loaded.*/
-    public function pctnlIsLoaded()
+    /**
+     * Check if the pctnl extension is loaded.
+     *
+     * @return bool
+     */
+    public function pctnlIsLoaded(): bool
     {
         return extension_loaded('pcntl');
     }
@@ -223,13 +397,13 @@ abstract class Command extends BaseCommand
     /**Run a new command task.*/
     public function runTask(string $title = '', $task = null, string $finishedText = '')
     {
-        if (! $this->pctnlIsLoaded() || static::$disabledAsyncTask == true) {
-            $task = $this->laravel->makeWith(BackupCommandTask::class, ['title' => $title, 'command' => $this, 'callback' => $task]);
-        } else {
-            $task = $this->laravel->makeWith(CommandTask::class, ['title' => $title, 'command' => $this, 'callback' => $task]);
-        }
+        $task = $this->laravel->make(Task::class, ['title' => $title, 'command' => $this, 'callback' => $task]);
 
-        $task->run();
+        if(static::$concurrentTasks == false || ! $this->pctnlIsLoaded()){
+            $task->runNonConcurrently();
+        }else{
+            $task->run();
+        }
 
         $finishedText = $finishedText ?: $title;
         $this->output->writeln(
@@ -240,28 +414,61 @@ abstract class Command extends BaseCommand
     }
 
     /**
-     * Initialize command.
+     * Parse an array input interface for tokens.
+     * 
+     * This will only be the case when running tests.
+     *
+     * @param InputInterface $input
+     * @return array
+     */
+    protected function parseArrayInputInterfaceTokens(InputInterface $input): array
+    {
+        $tokens = [];
+
+        foreach (invade($input)->parameters as $name => $value) {
+            if (is_array($value) && str_starts_with($name, '--')) {
+                foreach ($value as $v) {
+                    $tokens[] = "$name=$v";
+                }
+            } elseif (str_starts_with($name, '--')) {
+                $tokens[] = is_bool($value) ? "$name" : "$name=$value";
+            }
+        }
+
+        return $tokens;
+    }
+
+    /**
+     * Check if an option was passed in the terminal/command call.
+     * 
+     * @param string $name
+     * @return bool
+     */
+    protected function optionWasPassed(string $name): bool
+    {
+        return in_array($name, $this->commandTokens) || in_array("--$name", $this->commandTokens);
+    }
+
+
+    /**
+     * Initialize the command for execution.
+     *
+     * @param InputInterface $input
+     * @param OutputInterface $output
+     * @return void
      */
     protected function initialize(InputInterface $input, OutputInterface $output): void
     {
-        if ($this->fromPropertyOrMethod('arbitraryOptions', false)) {
+        try {
+            $this->commandTokens = invade($input)->tokens;
+        }catch (ReflectionException) {
             if ($input instanceof ArrayInput) {
-                $tokens = [];
-
-                foreach (invade($input)->parameters as $name => $value) {
-                    if (is_array($value) && str_starts_with($name, '--')) {
-                        foreach ($value as $v) {
-                            $tokens[] = "$name=$v";
-                        }
-                    } elseif (str_starts_with($name, '--')) {
-                        $tokens[] = is_bool($value) ? "$name" : "$name=$value";
-                    }
-                }
-            } else {
-                $tokens = invade($input)->tokens;
+                $this->commandTokens = $this->parseArrayInputInterfaceTokens($input);
             }
-
-            $parser = new OptionsParser($tokens);
+        }
+        // parse arbitrary options if set.
+        if ($this->fromPropertyOrMethod('arbitraryOptions', false)) {
+            $parser = new OptionsParser($this->commandTokens);
             $definition = $this->getDefinition();
 
             foreach ($parser->parse() as $name => $data) {
@@ -276,15 +483,29 @@ abstract class Command extends BaseCommand
     }
 
     /**
-     * Ask for input and optionally validate if trait is used.
+     * Ask for input with the given name or ask user for it if empty.
+     *
+     * @param string $name
+     * @param array $options
+     * @return string
      */
-    protected function getOrAskForInput(string $name, bool $confirm = false, bool $secret = false, array $rules = [], array $messages = [], array $attributes = [], array $transformers = [], array $transformersAfterValidation = [])
+    protected function getOrAskForInput(string $name, array $options = [])
     {
         $input = $this->data->get($name);
 
         if (! empty($input)) {
             return $input;
         }
+
+        $rules = $options['rules'] ?? [];
+        $messages = $options['messages'] ?? [];
+        $attributes = $options['attributes'] ?? [];
+        $transformers = $options['transformers'] ?? [];
+        $transformersAfterValidation = $options['transformersAfterValidation'] ?? [];
+        
+        $secret = $options['secret'] ?? false;
+        $confirm = $options['confirm'] ?? false;
+        
 
         $validate = function ($input) use ($name, $rules, $messages, $attributes) {
             if ($this->classUsesTrait($this, WithValidation::class)) {
@@ -297,7 +518,7 @@ abstract class Command extends BaseCommand
             }
         };
         $method = $secret ? 'secret' : 'ask';
-        $label = str_replace(['_', '-'], [' ', ' '], $name);
+        $label = $options['label'] ?? str_replace(['_', '-'], [' ', ' '], $name);
 
         $message = "Enter $label:";
         $this->message('INPUT', $message, fg: 'white', bg: 'green');
@@ -325,7 +546,7 @@ abstract class Command extends BaseCommand
     }
 
     /**
-     * Check a defined depency.
+     * Check if a dependency is installed or if the given requirement passes..
      *
      * @throws \Surgiie\Console\Exceptions\FailedRequirementException
      */
@@ -336,10 +557,14 @@ abstract class Command extends BaseCommand
         if (is_callable($requirement)) {
             $error = $requirement();
         } elseif ($isString && method_exists($this, $requirement)) {
+
             $error = $this->laravel->call([$this, $requirement]);
+
         } elseif ($isString && class_exists($requirement)) {
+            
             $instance = $this->laravel->make($requirement);
             $error = $this->laravel->call($instance);
+
         } elseif ($isString) {
             $process = (new Process(['which', $requirement]));
 
@@ -372,17 +597,6 @@ abstract class Command extends BaseCommand
                 }
             }
 
-            // merge the data together.
-            try {
-                $data = (new DataTransformer(array_merge($this->arguments(), $this->options()), ['*date*' => ['?', Carbon::class]]))->transform();
-            } catch (InvalidFormatException $e) {
-                $this->exit($e->getMessage());
-            }
-
-            $this->data = collect($data)->filter(function ($v) {
-                return ! is_null($v);
-            });
-
             // transform the data before validation
             if (($withTransformers = $this->classUsesTrait($this, WithTransformers::class)) && $transformers = $this->transformers()) {
                 $this->data = collect(
@@ -390,7 +604,7 @@ abstract class Command extends BaseCommand
                 );
             }
 
-            // validate
+            // validate the data.
             $this->validate();
 
             // post validation transformation
@@ -400,37 +614,26 @@ abstract class Command extends BaseCommand
                 );
             }
 
-            // separate the arbitraryData from main.
-            if ($this->fromPropertyOrMethod('arbitraryOptions', false)) {
-                $this->data = $this->data->filter(function ($value, $name) {
-                    $isArbitrary = $this->arbitraryData->has($name);
+            $this->data = $this->data->filter(function ($value, $name) {
+                $isArbitrary = $this->arbitraryData->has($name);
 
-                    // update the value in case it has gone through transformation
-                    if ($isArbitrary) {
-                        $this->arbitraryData->put($name, $value);
-                    }
+                // update the value in case it has gone through transformation
+                if ($isArbitrary) {
+                    $this->arbitraryData->put($name, $value);
+                }
 
-                    return ! $isArbitrary;
-                });
-            }
+                return ! $isArbitrary;
+            });
 
             // run the command
             $ms = Benchmark::measure(function () use (&$status) {
                 $status = $this->executeCommand();
             });
 
-            // lastly show how we did if specified.
-            if ($this->fromPropertyOrMethod('showPerformanceStats', false) !== false) {
-                $this->newLine();
-                $this->message(
-                    'Peformance',
-                    'Memory: '.$this->getMemoryUsage().'|Execution Time: '.number_format($ms, 2, thousands_separator: '').'ms',
-                    bg: 'cyan'
-                );
-            }
 
             return $status;
         } catch (ExitCommandException $e) {
+
             $level = $e->getLevel();
 
             $this->components->$level($e->getMessage());
@@ -439,28 +642,13 @@ abstract class Command extends BaseCommand
         }
     }
 
+  
+
     /**
-     * Get memory usage bytes into a more human friendly label.
+     * Validate the current data for options and arguments.
+     *
+     * @return void
      */
-    public function getMemoryUsage()
-    {
-        $bytes = memory_get_usage();
-        $labels = [
-            'B',
-            'kB',
-            'MB',
-            'GB',
-            'TB',
-        ];
-        $length = count($labels);
-        for ($i = 0, $length; $i < $length && $bytes > 1024; $i++) {
-            $bytes /= 1024;
-        }
-
-        return number_format($bytes, 2).$labels[$i];
-    }
-
-    /**Validate the current data for options and arguments.*/
     protected function validate(): void
     {
         if ($this->classUsesTrait($this, WithValidation::class)) {
@@ -473,7 +661,13 @@ abstract class Command extends BaseCommand
         }
     }
 
-    /**Display validation errors.*/
+    /**
+     * Display the validation errors that exist on the given validator.
+     *
+     * @param Validator $validator
+     * @param boolean $isUserInput
+     * @return void
+     */
     protected function displayValidationErrors(Validator $validator, bool $isUserInput = false)
     {
         foreach ($validator->messages()->getMessages() as $name => $errors) {
@@ -496,9 +690,11 @@ abstract class Command extends BaseCommand
     }
 
     /**
-     * Execute the command's handle method.
+     * Execute the command.
+     *
+     * @return int
      */
-    private function executeCommand()
+    private function executeCommand(): int
     {
         $method = method_exists($this, 'handle') ? 'handle' : '__invoke';
 

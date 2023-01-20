@@ -4,12 +4,20 @@ namespace Surgiie\Console\Rules;
 
 use Illuminate\Contracts\Validation\InvokableRule;
 
-class FileOrDirectoryExists implements InvokableRule
+class MustBeDirectory implements InvokableRule
 {
-    /**The error message. */
-    protected string $error = 'The :name :type file or directory does not exist.';
+    /**
+     * The error message when validation fails.
+     *
+     * @var string
+     */
+    protected string $error = 'The :name :type directory does not exist.';
 
-    /**Construct new Rule instance.*/
+    /**
+     * Construct new MustBeDirectory instance.
+     *
+     * @param string|null $error
+     */
     public function __construct(?string $error = null)
     {
         if (! is_null($error)) {
@@ -18,7 +26,7 @@ class FileOrDirectoryExists implements InvokableRule
     }
 
     /**
-     * Run the validation rule.
+     * Check if the validation rule passes.
      *
      * @param  string  $attribute
      * @param  mixed  $value
@@ -27,7 +35,7 @@ class FileOrDirectoryExists implements InvokableRule
      */
     public function __invoke($attribute, $value, $fail)
     {
-        if (! file_exists($value)) {
+        if (! is_dir($value)) {
             $fail($this->error);
         }
     }

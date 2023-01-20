@@ -11,20 +11,34 @@ trait WithValidation
 {
     use FromPropertyOrMethod;
 
-    /**Get path to the lang directory for validation message language.*/
+    /**
+     * Get the path to directory holding the lang file for validation.
+     *
+     * @return string
+     */
     protected function getValidationLangPath(): string
     {
         return __DIR__.'/../resources/lang';
     }
 
-    /**Get locale to use for validation lang.*/
+    /**
+     * Get the locale to use for validation.
+     * 
+     * @return string.
+     */
     protected function getValidationLangLocale(): string
     {
         return 'en';
     }
 
     /**
-     * Make a new validator using the given data.
+     * Create a new validator instance.
+     *
+     * @param array $data
+     * @param array|null $rules
+     * @param array|null $messages
+     * @param array|null $attributes
+     * @return \Illuminate\Validation\Validator
      */
     protected function validator(array $data, ?array $rules = null, ?array $messages = null, ?array $attributes = null)
     {
