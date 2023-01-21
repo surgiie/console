@@ -12,11 +12,11 @@ class MustBeExecutable implements InvokableRule
      * @var string
      */
     protected string $error = 'The :name :type is not executable.';
-    
+
     /**
      * Construct new MustBeExecutable instance.
      *
-     * @param string|null $error
+     * @param  string|null  $error
      */
     public function __construct(?string $error = null)
     {

@@ -10,7 +10,7 @@ trait LoadsEnvFiles
     /**
      * Parse an env file and returns parsed data as an array.
      *
-     * @param string $path
+     * @param  string  $path
      * @return array
      */
     public function getEnvFileVariables(string $path): array

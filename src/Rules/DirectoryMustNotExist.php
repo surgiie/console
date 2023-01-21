@@ -16,7 +16,7 @@ class DirectoryMustNotExist implements InvokableRule
     /**
      * Construct new DirectoryMustNotExist instance.
      *
-     * @param string|null $error
+     * @param  string|null  $error
      */
     public function __construct(?string $error = null)
     {

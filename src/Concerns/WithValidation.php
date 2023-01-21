@@ -23,7 +23,7 @@ trait WithValidation
 
     /**
      * Get the locale to use for validation.
-     * 
+     *
      * @return string.
      */
     protected function getValidationLangLocale(): string
@@ -34,10 +34,10 @@ trait WithValidation
     /**
      * Create a new validator instance.
      *
-     * @param array $data
-     * @param array|null $rules
-     * @param array|null $messages
-     * @param array|null $attributes
+     * @param  array  $data
+     * @param  array|null  $rules
+     * @param  array|null  $messages
+     * @param  array|null  $attributes
      * @return \Illuminate\Validation\Validator
      */
     protected function validator(array $data, ?array $rules = null, ?array $messages = null, ?array $attributes = null)

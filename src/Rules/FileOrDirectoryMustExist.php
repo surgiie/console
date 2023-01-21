@@ -16,7 +16,7 @@ class FileOrDirectoryMustExist implements InvokableRule
     /**
      * Construct new FileOrDirectoryMustExist instance.
      *
-     * @param string|null $error
+     * @param  string|null  $error
      */
     public function __construct(?string $error = null)
     {

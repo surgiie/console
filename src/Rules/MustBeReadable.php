@@ -16,7 +16,7 @@ class MustBeReadable implements InvokableRule
     /**
      * Construct new MustBeReadable instance.
      *
-     * @param string|null $error
+     * @param  string|null  $error
      */
     public function __construct(?string $error = null)
     {
