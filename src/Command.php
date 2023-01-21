@@ -63,7 +63,7 @@ abstract class Command extends BaseCommand
      *
      * @var string
      */
-    protected string $commandTokensString = "";
+    protected string $commandTokensString = '';
 
     /**
      * The options that were arbitrary.
@@ -441,8 +441,8 @@ abstract class Command extends BaseCommand
      */
     protected function optionWasPassed(string $name): bool
     {
-        $name = ltrim($name, "--");
-        
+        $name = ltrim($name, '--');
+
         return str_contains($this->commandTokensString, $name);
     }
 
@@ -463,7 +463,7 @@ abstract class Command extends BaseCommand
             }
         }
 
-        $this->commandTokensString = implode(" ", $tokens);
+        $this->commandTokensString = implode(' ', $tokens);
         // parse arbitrary options if set.
         if ($this->fromPropertyOrMethod('arbitraryOptions', false)) {
             $parser = new OptionsParser($tokens);
