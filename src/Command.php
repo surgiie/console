@@ -2,33 +2,34 @@
 
 namespace Surgiie\Console;
 
-use Carbon\Carbon;
-use Carbon\Exceptions\InvalidFormatException;
 use Closure;
-use Illuminate\Console\Command as LaravelCommand;
-use Illuminate\Console\Contracts\NewLineAware;
-use Illuminate\Filesystem\Filesystem;
-use Illuminate\Support\Benchmark;
-use Illuminate\Support\Collection;
-use Illuminate\Validation\Validator;
-use InvalidArgumentException;
-use LaravelZero\Framework\Commands\Command as LaravelZeroCommand;
+use Carbon\Carbon;
 use ReflectionException;
 use Surgiie\Blade\Blade;
-use Surgiie\Console\Concerns\FromPropertyOrMethod;
-use Surgiie\Console\Concerns\WithTransformers;
-use Surgiie\Console\Concerns\WithValidation;
-use Surgiie\Console\Exceptions\ExitCommandException;
-use Surgiie\Console\Exceptions\FailedRequirementException;
-use Surgiie\Console\Support\Task;
-use Surgiie\Transformer\Concerns\UsesTransformer;
-use Surgiie\Transformer\DataTransformer;
-use Symfony\Component\Console\Input\ArrayInput;
-use Symfony\Component\Console\Input\InputInterface;
-use Symfony\Component\Console\Output\OutputInterface;
-use Symfony\Component\Process\Process;
 use function Termwind\render;
+use InvalidArgumentException;
+use Illuminate\Support\Benchmark;
+use Surgiie\Console\Support\Task;
 use function Termwind\renderUsing;
+use Illuminate\Support\Collection;
+use Illuminate\Validation\Validator;
+use Illuminate\Filesystem\Filesystem;
+use Symfony\Component\Process\Process;
+use Surgiie\Transformer\DataTransformer;
+use Surgiie\Console\Concerns\WithValidation;
+use Carbon\Exceptions\InvalidFormatException;
+use Illuminate\Console\Contracts\NewLineAware;
+use Surgiie\Console\Concerns\WithTransformers;
+use Symfony\Component\Console\Input\ArrayInput;
+use Symfony\Component\Console\Input\StringInput;
+use Illuminate\Console\Command as LaravelCommand;
+use Surgiie\Transformer\Concerns\UsesTransformer;
+use Surgiie\Console\Concerns\FromPropertyOrMethod;
+use Symfony\Component\Console\Input\InputInterface;
+use Surgiie\Console\Exceptions\ExitCommandException;
+use Symfony\Component\Console\Output\OutputInterface;
+use Surgiie\Console\Exceptions\FailedRequirementException;
+use LaravelZero\Framework\Commands\Command as LaravelZeroCommand;
 
 if (class_exists(LaravelZeroCommand::class)) {
     abstract class BaseCommand extends LaravelZeroCommand
@@ -455,9 +456,13 @@ abstract class Command extends BaseCommand
      */
     protected function initialize(InputInterface $input, OutputInterface $output): void
     {
+        
         try {
             $tokens = invade($input)->tokens;
         } catch (ReflectionException) {
+            if($input instanceof StringInput){
+                $input = new ArrayInput(explode(" ", trim(strval($input), "'")));
+            }
             if ($input instanceof ArrayInput) {
                 $tokens = $this->parseArrayInputInterfaceTokens($input);
             }
