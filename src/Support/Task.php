@@ -139,7 +139,9 @@ class Task
 
         $output->write($this->title.': <comment>loading...</comment>');
 
-        $this->succesful = $callback($this);
+        $result = $callback($this);
+        
+        $this->succesful = is_null($result) ? true: $result;
 
         if ($output->isDecorated()) {
             $this->command->clearTerminalLine();
@@ -165,7 +167,7 @@ class Task
             ->before(fn () => $this->startConcurrentRun())
             ->run(
                 // show a spinner in parent process
-                function () {
+                function () use($output) {
                     $this->command->hideCursor();
         
                     while ($this->runningConcurrently()) {
@@ -178,7 +180,7 @@ class Task
                         }
                     }
 
-                    $this->command->uhideCursor();
+                    $this->command->unhideCursor();
 
                     $this->command->clearTerminalLine();
                 },
@@ -205,7 +207,7 @@ class Task
 
         $this->command->erasePreviousLine();
         
-        $this->succesful = $results[1];
+        $this->succesful = is_null($results[1]) ? true: $results[1];
 
         $this->removeConcurrentTaskStateFile();
 

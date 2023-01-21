@@ -209,7 +209,7 @@ abstract class Command extends BaseCommand
      *
      * @return void
      */
-    protected function hideCursor()
+    public function hideCursor()
     {
         if ($this->output->isDecorated()) {
             $this->output->write("\e[?25l");
@@ -222,7 +222,7 @@ abstract class Command extends BaseCommand
      *
      * @return void
      */
-    protected function unhideCursor()
+    public function unhideCursor()
     {
         if ($this->output->isDecorated()) {
             $this->output->write("\e[?25h");
@@ -234,7 +234,7 @@ abstract class Command extends BaseCommand
      *
      * @return void
      */
-    protected function erasePreviousLine()
+    public function erasePreviousLine()
     {
         if ($this->output->isDecorated()) {
             $this->output->write("\e[1A\e[K");
@@ -295,15 +295,17 @@ abstract class Command extends BaseCommand
      *
      * @param  string  $path
      * @param  array  $data
-     * @param  bool  $removeCompiledFile
+     * @param  bool  $removeCompiledDirectory
      * @return string
      */
-    public function compile(string $path, array $data = [], bool $removeCompiledFile = false): string
+    public function compile(string $path, array $data = [], bool $removeCompiledDirectory = false): string
     {
         $blade = $this->blade();
         $result = $blade->compile($path, $data);
 
-        @unlink($blade->getCompiledPath());
+        if($removeCompiledDirectory){
+            (new Filesystem)->deleteDirectory($blade->getCompiledPath());
+        }
       
         return $result;
     }

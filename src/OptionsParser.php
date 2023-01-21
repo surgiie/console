@@ -52,7 +52,9 @@ class OptionsParser
     }
 
     /**
-     * Parse the set options for key/values and opitons mode.
+     *  Parse the set options.
+     *
+     * @return array
      */
     public function parse(): array
     {
