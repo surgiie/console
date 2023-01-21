@@ -642,11 +642,11 @@ abstract class Command extends BaseCommand
             $level = $e->getLevel();
 
             $message = $e->getMessage();
-            
-            if($message){
+
+            if ($message) {
                 $this->components->$level($e->getMessage());
             }
-            
+
             return $e->getStatus();
         }
     }
