@@ -10,7 +10,7 @@ trait LoadsJsonFiles
     /**
      * Format a json decode error to be more friendly.
      *
-     * @param string $error
+     * @param  string  $error
      * @return string
      */
     protected function formatJsonParseError(string $error): string

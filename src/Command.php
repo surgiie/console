@@ -303,10 +303,10 @@ abstract class Command extends BaseCommand
         $blade = $this->blade();
         $result = $blade->compile($path, $data);
 
-        if($removeCompiledDirectory){
+        if ($removeCompiledDirectory) {
             (new Filesystem)->deleteDirectory($blade->getCompiledPath());
         }
-      
+
         return $result;
     }
 

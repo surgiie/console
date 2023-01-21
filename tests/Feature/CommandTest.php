@@ -4,7 +4,6 @@ use Carbon\Carbon;
 use Illuminate\Console\OutputStyle;
 use Illuminate\Container\Container;
 use Mockery as m;
-use Surgiie\Console\BackupCommandTask;
 use Surgiie\Console\Command as ConsoleCommand;
 use Surgiie\Console\Concerns\LoadsEnvFiles;
 use Surgiie\Console\Concerns\LoadsJsonFiles;
@@ -289,7 +288,7 @@ it('can confirm ask for input.', function () {
 
         public function handle()
         {
-            $this->getOrAskForInput('foo', ['confirm'=>true]);
+            $this->getOrAskForInput('foo', ['confirm' => true]);
         }
     };
 
@@ -324,7 +323,7 @@ it('can ask for input and validate', function () {
         public function handle()
         {
             $this->getOrAskForInput('dooms-day', [
-                'rules'=>['date']
+                'rules' => ['date'],
             ]);
         }
     };
@@ -359,8 +358,8 @@ it('can ask for input and transform', function () {
         public function handle()
         {
             $this->getOrAskForInput('number', [
-                'transformers'=> ['number' => 'intval'],
-                'rules'=>['numeric'],
+                'transformers' => ['number' => 'intval'],
+                'rules' => ['numeric'],
             ]);
         }
     };

@@ -26,7 +26,7 @@ class OptionsParser
     /**
      * Set the options to parse.
      *
-     * @param array $options
+     * @param  array  $options
      * @return static
      */
     public function setOptions(array $options): static
@@ -37,10 +37,10 @@ class OptionsParser
     }
 
     /**
-     * Check if a token is --option or --option=value 
+     * Check if a token is --option or --option=value
      * format and return the matched array.
      *
-     * @param string $token
+     * @param  string  $token
      * @return array
      */
     protected function isOptionToken(string $token): array

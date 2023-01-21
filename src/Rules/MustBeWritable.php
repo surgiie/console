@@ -7,17 +7,16 @@ use Illuminate\Contracts\Validation\InvokableRule;
 class MustBeWritable implements InvokableRule
 {
     /**
-      * The error message when validation fails.
-      *
-      * @var string
-      */
+     * The error message when validation fails.
+     *
+     * @var string
+     */
     protected string $error = 'The :name :type is not writable.';
 
-    
     /**
      * Construct new MustBeWritable instance.
      *
-     * @param string|null $error
+     * @param  string|null  $error
      */
     public function __construct(?string $error = null)
     {

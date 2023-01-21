@@ -58,7 +58,6 @@ it('merges options and arguments into data property', function () {
     expect($command->getData()->all())->toBe(['foo' => 'bar', 'bar' => 'baz']);
 });
 
-
 it('checks requirements', function () {
     $command = new class extends ConsoleCommand
     {
