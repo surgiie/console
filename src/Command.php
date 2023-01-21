@@ -59,11 +59,11 @@ abstract class Command extends BaseCommand
     protected array $cache = [];
 
     /**
-     * The command tokens passed in the terminal.
+     * The command tokens passed in the terminal as a string.
      *
-     * @var array
+     * @var string
      */
-    protected array $commandTokens = [];
+    protected string $commandTokensString = "";
 
     /**
      * The options that were arbitrary.
@@ -441,7 +441,9 @@ abstract class Command extends BaseCommand
      */
     protected function optionWasPassed(string $name): bool
     {
-        return in_array($name, $this->commandTokens) || in_array("--$name", $this->commandTokens);
+        $name = ltrim($name, "--");
+        
+        return str_contains($this->commandTokensString, $name);
     }
 
     /**
@@ -454,15 +456,17 @@ abstract class Command extends BaseCommand
     protected function initialize(InputInterface $input, OutputInterface $output): void
     {
         try {
-            $this->commandTokens = invade($input)->tokens;
+            $tokens = invade($input)->tokens;
         } catch (ReflectionException) {
             if ($input instanceof ArrayInput) {
-                $this->commandTokens = $this->parseArrayInputInterfaceTokens($input);
+                $tokens = $this->parseArrayInputInterfaceTokens($input);
             }
         }
+
+        $this->commandTokensString = implode(" ", $tokens);
         // parse arbitrary options if set.
         if ($this->fromPropertyOrMethod('arbitraryOptions', false)) {
-            $parser = new OptionsParser($this->commandTokens);
+            $parser = new OptionsParser($tokens);
             $definition = $this->getDefinition();
 
             foreach ($parser->parse() as $name => $data) {
