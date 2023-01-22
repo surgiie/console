@@ -162,8 +162,9 @@ class Task
 
         $output->writeln('  Running: '.$this->title);
 
+        $this->startConcurrentRun();
+
         $results = Fork::new()
-            ->before(fn () => $this->startConcurrentRun())
             ->run(
                 // show a spinner in parent process
                 function () use ($output) {
