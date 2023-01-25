@@ -281,13 +281,13 @@ class Task
      */
     protected function taskFlagFilePath(): string
     {
-        if ($phar = Phar::running(false)) {
-            $base = dirname($phar).'/console-tasks/';
-            @mkdir($base, recursive: true);
-            return $base.$this->id;
+        if(strtoupper(substr(PHP_OS, 0, 3)) === 'WIN'){
+            $tmp = getenv("TEMP");
+        }else{
+            $tmp = "/tmp";
         }
 
-        return storage_path('app/console-tasks/'.$this->id);
+        return rtrim($tmp, DIRECTORY_SEPARATOR).DIRECTORY_SEPARATOR.$this->id;
     }
 
     /**
