@@ -281,10 +281,7 @@ class Task
      */
     protected function taskFlagFilePath(): string
     {
-        if ($phar = Phar::running(false)) {
-            return dirname($phar).'/console-tasks/'.$this->id;
-        }
-
+        @mkdir(storage_path('app/console-tasks'), recursive: true);
         return storage_path('app/console-tasks/'.$this->id);
     }
 
