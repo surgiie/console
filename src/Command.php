@@ -8,7 +8,6 @@ use Closure;
 use Illuminate\Console\Command as LaravelCommand;
 use Illuminate\Console\Contracts\NewLineAware;
 use Illuminate\Filesystem\Filesystem;
-use Illuminate\Support\Benchmark;
 use Illuminate\Support\Collection;
 use Illuminate\Validation\Validator;
 use InvalidArgumentException;
@@ -637,9 +636,7 @@ abstract class Command extends BaseCommand
             });
 
             // run the command
-            $ms = Benchmark::measure(function () use (&$status) {
-                $status = $this->executeCommand();
-            });
+            $status = $this->executeCommand();
 
             return $status;
         } catch (ExitCommandException $e) {
