@@ -4,7 +4,6 @@ namespace Surgiie\Console\Support;
 
 use Closure;
 use Illuminate\Support\Str;
-use Phar;
 use Spatie\Fork\Fork;
 use Surgiie\Console\Command;
 
@@ -281,10 +280,10 @@ class Task
      */
     protected function taskFlagFilePath(): string
     {
-        if(strtoupper(substr(PHP_OS, 0, 3)) === 'WIN'){
-            $tmp = getenv("TEMP");
-        }else{
-            $tmp = "/tmp";
+        if (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') {
+            $tmp = getenv('TEMP');
+        } else {
+            $tmp = '/tmp';
         }
 
         return rtrim($tmp, DIRECTORY_SEPARATOR).DIRECTORY_SEPARATOR.$this->id;
