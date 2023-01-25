@@ -4,6 +4,7 @@ namespace Surgiie\Console\Support;
 
 use Closure;
 use Illuminate\Support\Str;
+use Phar;
 use Spatie\Fork\Fork;
 use Surgiie\Console\Command;
 
@@ -280,7 +281,11 @@ class Task
      */
     protected function taskFlagFilePath(): string
     {
-        @mkdir(storage_path('app/console-tasks'), recursive: true);
+        if ($phar = Phar::running(false)) {
+            $base = dirname($phar).'/console-tasks/';
+            @mkdir($base, recursive: true);
+            return $base.$this->id;
+        }
 
         return storage_path('app/console-tasks/'.$this->id);
     }
