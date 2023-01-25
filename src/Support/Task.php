@@ -284,6 +284,7 @@ class Task
         if ($phar = Phar::running(false)) {
             $base = dirname($phar).'/console-tasks/';
             @mkdir($base, recursive: true);
+
             return $base.$this->id;
         }
 
