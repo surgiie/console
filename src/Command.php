@@ -303,7 +303,7 @@ abstract class Command extends BaseCommand
         $blade = $this->blade();
 
         $result = $blade->compile($path, $data, removeCachedFile: $removeCachedFile);
-        
+
         return $result;
     }
 
