@@ -176,7 +176,7 @@ abstract class Command extends BaseCommand
             $path = __DIR__."/resources/views/$view.php";
         }
 
-        render((string) $this->compile($path, $data), $verbosity);
+        render((string) $this->compile($path, $data, removeCachedFile: true), $verbosity);
     }
 
     /**
@@ -295,18 +295,15 @@ abstract class Command extends BaseCommand
      *
      * @param  string  $path
      * @param  array  $data
-     * @param  bool  $removeCompiledDirectory
+     * @param  bool  $removeCachedFile
      * @return string
      */
-    public function compile(string $path, array $data = [], bool $removeCompiledDirectory = false): string
+    public function compile(string $path, array $data = [], bool $removeCachedFile = false): string
     {
         $blade = $this->blade();
-        $result = $blade->compile($path, $data);
 
-        if ($removeCompiledDirectory) {
-            (new Filesystem)->deleteDirectory($blade->getCompiledPath());
-        }
-
+        $result = $blade->compile($path, $data, removeCachedFile: $removeCachedFile);
+        
         return $result;
     }
 
