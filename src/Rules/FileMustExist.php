@@ -8,15 +8,11 @@ class FileMustExist implements InvokableRule
 {
     /**
      * The error message when validation fails.
-     *
-     * @var string
      */
     protected string $error = 'The :name :type does not exist.';
 
     /**
      * Construct new FileExists instance.
-     *
-     * @param  string|null  $error
      */
     public function __construct(?string $error = null)
     {

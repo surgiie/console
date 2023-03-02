@@ -8,10 +8,6 @@ class ExitCommandException extends Exception
 {
     /**
      * Construct a new ExitCommandException instance.
-     *
-     * @param  string  $message
-     * @param  int  $status
-     * @param  string  $level
      */
     public function __construct(string $message, int $status = 1, string $level = 'error')
     {
@@ -32,8 +28,6 @@ class ExitCommandException extends Exception
 
     /**
      * Get the status code to exit with.
-     *
-     * @return int
      */
     public function getStatus(): int
     {

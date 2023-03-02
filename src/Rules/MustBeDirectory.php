@@ -8,15 +8,11 @@ class MustBeDirectory implements InvokableRule
 {
     /**
      * The error message when validation fails.
-     *
-     * @var string
      */
     protected string $error = 'The :name :type directory does not exist.';
 
     /**
      * Construct new MustBeDirectory instance.
-     *
-     * @param  string|null  $error
      */
     public function __construct(?string $error = null)
     {

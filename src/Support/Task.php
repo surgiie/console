@@ -11,22 +11,16 @@ class Task
 {
     /**
      * The title of the task for the console output.
-     *
-     * @var string
      */
     protected string $id;
 
     /**
      * The id of the task.
-     *
-     * @var string
      */
     protected string $title;
 
     /**
      * The spinner characters to use for loader.
-     *
-     * @var array
      */
     protected static array $spinnerFrames = [
         '⠇',
@@ -46,32 +40,22 @@ class Task
 
     /**
      * The task function being executed.
-     *
-     * @var Closure
      */
     protected Closure $callback;
 
     /**
      * Data that is persisted from the task when running
      * task concurrently with the spatie/fork package.
-     *
-     * @var array
      */
     protected array $taskData = [];
 
     /**
      * Whether the task was succesful.
-     *
-     * @var bool
      */
     protected bool $succesful = false;
 
     /**
      * Construct a new Task instance.
-     *
-     * @param  string  $title
-     * @param  \Surgiie\Console\Command  $command
-     * @param  \Closure  $callback
      */
     public function __construct(string $title, Command $command, Closure $callback)
     {
@@ -85,7 +69,6 @@ class Task
      * Remember data when running concurrently.
      *
      * @param  array  $data.
-     * @return static
      */
     public function remember(array $data): static
     {
@@ -96,8 +79,6 @@ class Task
 
     /**
      * The uuid of the task.
-     *
-     * @return string
      */
     public function getId(): string
     {
@@ -106,8 +87,6 @@ class Task
 
     /**
      * Get the remembered data.
-     *
-     * @return array
      */
     public function data(): array
     {
@@ -116,8 +95,6 @@ class Task
 
     /**
      * Check if the task succeeded.
-     *
-     * @return bool
      */
     public function succeeded(): bool
     {
@@ -215,9 +192,6 @@ class Task
 
     /**
      * Write task state file with the given data.
-     *
-     * @param  array  $data
-     * @return int
      */
     protected function writeStateFile(array $data = []): int
     {
@@ -226,8 +200,6 @@ class Task
 
     /**
      * Remove concurrent task flag file.
-     *
-     * @return bool
      */
     protected function removeConcurrentTaskFile(): bool
     {
@@ -236,8 +208,6 @@ class Task
 
     /**
      * Remove concurrent task state file.
-     *
-     * @return bool
      */
     protected function removeConcurrentTaskStateFile(): bool
     {
@@ -254,8 +224,6 @@ class Task
 
     /**
      * Determine whether the concurrent task is still running via flag file.
-     *
-     * @return bool
      */
     protected function runningConcurrently(): bool
     {
@@ -264,9 +232,6 @@ class Task
 
     /**
      * Set the characters to use for loader spinner
-     *
-     * @param  array  $frames
-     * @return void
      */
     public static function setSpinnerFrames(array $frames): void
     {
@@ -275,8 +240,6 @@ class Task
 
     /**
      * Return path to the task flag file.
-     *
-     * @return string
      */
     protected function taskFlagFilePath(): string
     {
@@ -291,8 +254,6 @@ class Task
 
     /**
      * Return path to the task state file.
-     *
-     * @return string
      */
     protected function taskStateFilePath(): string
     {
@@ -301,8 +262,6 @@ class Task
 
     /**
      * Save the file that signifies if we are starting the task.
-     *
-     * @return bool
      */
     private function startConcurrentRun(): bool
     {

@@ -9,7 +9,6 @@ trait FromPropertyOrMethod
     /**
      * Get the value of a property or method where property is prioritized.
      *
-     * @param  string  $name
      * @param  mixed  $default
      * @return mixed
      */
