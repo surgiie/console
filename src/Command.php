@@ -257,13 +257,11 @@ abstract class Command extends BaseCommand
             $tmp = '/tmp';
         }
 
-        return rtrim($tmp, DIRECTORY_SEPARATOR).DIRECTORY_SEPARATOR.".compiled";
+        return rtrim($tmp, DIRECTORY_SEPARATOR).DIRECTORY_SEPARATOR.'.compiled';
     }
 
     /**
      * Return path to the for blade compiled files.
-     *
-     * @return string|null
      */
     protected function bladeCompiledPath(): string|null
     {
@@ -280,7 +278,7 @@ abstract class Command extends BaseCommand
             filesystem: new Filesystem,
         ));
 
-        $compilePath = $this->bladeCompiledPath() ?:$this->defaultBladeCompiledPath();
+        $compilePath = $this->bladeCompiledPath() ?: $this->defaultBladeCompiledPath();
 
         $blade->setCompiledPath($compilePath);
 
