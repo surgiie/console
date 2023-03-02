@@ -10,8 +10,6 @@ trait WithTransformers
 
     /**
      * The transformer or casts to run on command data.
-     *
-     * @return array
      */
     protected function transformers(): array
     {

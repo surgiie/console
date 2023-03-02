@@ -46,29 +46,21 @@ abstract class Command extends BaseCommand
 
     /**
      * The merged options and arguments.
-     *
-     * @var \Illuminate\Support\Collection
      */
     protected Collection $data;
 
     /**
      * Cached array for saving values repeatedly called.
-     *
-     * @var array
      */
     protected array $cache = [];
 
     /**
      * The command tokens passed in the terminal as a string.
-     *
-     * @var string
      */
     protected string $commandTokensString = '';
 
     /**
      * The options that were arbitrary.
-     *
-     * @var \Illuminate\Support\Collection
      */
     protected Collection $arbitraryData;
 
@@ -81,8 +73,6 @@ abstract class Command extends BaseCommand
 
     /**
      * Whether to cast date inputs to carbon instances.
-     *
-     * @var bool
      */
     protected bool $castDatesToCarbon = true;
 
@@ -134,8 +124,6 @@ abstract class Command extends BaseCommand
      * Check if a class uses a given trait.
      *
      * @param  mixed  $class
-     * @param  string  $trait
-     * @return bool
      */
     protected function classUsesTrait($class, string $trait): bool
     {
@@ -145,10 +133,6 @@ abstract class Command extends BaseCommand
     /**
      * Throw an ExitCommandException.
      *
-     * @param  string  $error
-     * @param  int  $code
-     * @param  string  $level
-     * @return void
      *
      * @throws \Surgiie\Console\Exceptions\ExitCommandException
      */
@@ -160,9 +144,6 @@ abstract class Command extends BaseCommand
     /**
      * Renders a console view with termwind renderer.
      *
-     * @param  string  $view
-     * @param  array  $data
-     * @param  int  $verbosity
      * @return void
      */
     protected function consoleView(string $view, array $data, int $verbosity = OutputInterface::VERBOSITY_NORMAL)
@@ -244,8 +225,6 @@ abstract class Command extends BaseCommand
     /**
      * Get a cached value from the cache array or set it in cache with the given callback.
      *
-     * @param  string  $key
-     * @param  Closure|null  $createWith
      * @return mixed
      */
     public function fromArrayCache(string $key, ?Closure $createWith = null)
@@ -260,7 +239,6 @@ abstract class Command extends BaseCommand
     /**
      * Get a cached value from the cache array.
      *
-     * @param  string  $key
      * @return bool
      */
     public function hasArrayCacheValue(string $key)
@@ -270,8 +248,6 @@ abstract class Command extends BaseCommand
 
     /**
      * Return path to the default path for blade compiled files.
-     *
-     * @return string
      */
     protected function defaultBladeCompiledPath(): string
     {
@@ -296,8 +272,6 @@ abstract class Command extends BaseCommand
 
     /**
      * Return a blade engine for rendering textual files.
-     *
-     * @return \Surgiie\Blade\Blade
      */
     protected function blade(): Blade
     {
@@ -315,11 +289,6 @@ abstract class Command extends BaseCommand
 
     /**
      * Compile a textual file with blade using the given path and data.
-     *
-     * @param  string  $path
-     * @param  array  $data
-     * @param  bool  $removeCachedFile
-     * @return string
      */
     public function compile(string $path, array $data = [], bool $removeCachedFile = false): string
     {
@@ -333,10 +302,6 @@ abstract class Command extends BaseCommand
     /**
      * Output a message using the view console components.
      *
-     * @param  string  $title
-     * @param  string  $content
-     * @param  string  $bg
-     * @param  string  $fg
      * @return void
      */
     public function message(string $title, string $content, string $bg = 'gray', string $fg = 'white')
@@ -353,8 +318,6 @@ abstract class Command extends BaseCommand
     /**
      * Print a debug view console component message if a debug option exists on the command.
      *
-     * @param  string  $message
-     * @param  bool  $clearLine
      * @return void
      */
     protected function debug(string $message, bool $clearLine = false)
@@ -370,7 +333,6 @@ abstract class Command extends BaseCommand
     /**
      * Return the merged options and arguments data collection or a value from it if a key is passed.
      *
-     * @param  string|null  $key
      * @param  mixed  $default
      * @return \Illuminate\Support\Collection|mixed
      */
@@ -386,7 +348,6 @@ abstract class Command extends BaseCommand
     /**
      * Return the arbitrary data collection or a value from it if a key is passed.
      *
-     * @param  string|null  $key
      * @param  mixed  $default
      * @return \Illuminate\Support\Collection|mixed
      */
@@ -401,8 +362,6 @@ abstract class Command extends BaseCommand
 
     /**
      * Check if the pctnl extension is loaded.
-     *
-     * @return bool
      */
     public function pctnlIsLoaded(): bool
     {
@@ -432,9 +391,6 @@ abstract class Command extends BaseCommand
      * Parse an array input interface for tokens.
      *
      * This will only be the case when running tests.
-     *
-     * @param  InputInterface  $input
-     * @return array
      */
     protected function parseArrayInputInterfaceTokens(InputInterface $input): array
     {
@@ -455,9 +411,6 @@ abstract class Command extends BaseCommand
 
     /**
      * Check if an option was passed in the terminal/command call.
-     *
-     * @param  string  $name
-     * @return bool
      */
     protected function optionWasPassed(string $name): bool
     {
@@ -468,10 +421,6 @@ abstract class Command extends BaseCommand
 
     /**
      * Initialize the command for execution.
-     *
-     * @param  InputInterface  $input
-     * @param  OutputInterface  $output
-     * @return void
      */
     protected function initialize(InputInterface $input, OutputInterface $output): void
     {
@@ -520,8 +469,6 @@ abstract class Command extends BaseCommand
     /**
      * Ask for input with the given name or ask user for it if empty.
      *
-     * @param  string  $name
-     * @param  array  $options
      * @return string
      */
     protected function getOrAskForInput(string $name, array $options = [])
@@ -674,8 +621,6 @@ abstract class Command extends BaseCommand
 
     /**
      * Validate the current data for options and arguments.
-     *
-     * @return void
      */
     protected function validate(): void
     {
@@ -692,8 +637,6 @@ abstract class Command extends BaseCommand
     /**
      * Display the validation errors that exist on the given validator.
      *
-     * @param  Validator  $validator
-     * @param  bool  $isUserInput
      * @return void
      */
     protected function displayValidationErrors(Validator $validator, bool $isUserInput = false)
@@ -719,8 +662,6 @@ abstract class Command extends BaseCommand
 
     /**
      * Execute the command.
-     *
-     * @return int
      */
     private function executeCommand(): int
     {

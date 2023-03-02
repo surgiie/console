@@ -10,8 +10,6 @@ class OptionsParser
 {
     /**
      * The options being parsed.
-     *
-     * @var array
      */
     protected array $options = [];
 
@@ -25,9 +23,6 @@ class OptionsParser
 
     /**
      * Set the options to parse.
-     *
-     * @param  array  $options
-     * @return static
      */
     public function setOptions(array $options): static
     {
@@ -39,9 +34,6 @@ class OptionsParser
     /**
      * Check if a token is --option or --option=value
      * format and return the matched array.
-     *
-     * @param  string  $token
-     * @return array
      */
     protected function isOptionToken(string $token): array
     {
@@ -53,8 +45,6 @@ class OptionsParser
 
     /**
      *  Parse the set options.
-     *
-     * @return array
      */
     public function parse(): array
     {
