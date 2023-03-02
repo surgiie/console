@@ -269,6 +269,22 @@ abstract class Command extends BaseCommand
     }
 
     /**
+     * Return path to the default path for blade compiled files.
+     *
+     * @return string
+     */
+    protected function defaultCompiledPath(): string
+    {
+        if (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') {
+            $tmp = getenv('TEMP');
+        } else {
+            $tmp = '/tmp';
+        }
+
+        return rtrim($tmp, DIRECTORY_SEPARATOR).DIRECTORY_SEPARATOR.".blade-compiled";
+    }
+
+    /**
      * Return a blade engine for rendering textual files.
      *
      * @return \Surgiie\Blade\Blade
@@ -280,12 +296,7 @@ abstract class Command extends BaseCommand
             filesystem: new Filesystem,
         ));
 
-        // if a compiled path is set on the application, set it.
-        $compilePath = config('app.compiled_path');
-
-        if (! is_null($compilePath)) {
-            $blade->setCompiledPath($compilePath);
-        }
+        $blade->setCompiledPath($this->defaultCompiledPath());
 
         return $blade;
     }
