@@ -50,7 +50,7 @@ class ExampleCommand extends Command
     protected $signature = "example {--iterations=}";
 
     public function handle()
-    {   
+    {
         // check if the user passed the --iterations flag in the command call.
         if($this->optionWasPassed("iterations")){
 
@@ -251,6 +251,12 @@ An exented version of the blade engine is available to compile any textual file:
 public function handle()
 {
     $contents = $this->compile('/some/file', ['var'=>'example']);
+}
+
+// set a custom path for compiled/cached files. Default is /tmp/.compiled
+public function bladeCompiledPath(): string|null
+{
+    return '/custom/directory';
 }
 
 ```
