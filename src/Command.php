@@ -273,7 +273,7 @@ abstract class Command extends BaseCommand
      *
      * @return string
      */
-    protected function defaultCompiledPath(): string
+    protected function defaultBladeCompiledPath(): string
     {
         if (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') {
             $tmp = getenv('TEMP');
@@ -281,7 +281,17 @@ abstract class Command extends BaseCommand
             $tmp = '/tmp';
         }
 
-        return rtrim($tmp, DIRECTORY_SEPARATOR).DIRECTORY_SEPARATOR.".blade-compiled";
+        return rtrim($tmp, DIRECTORY_SEPARATOR).DIRECTORY_SEPARATOR.".compiled";
+    }
+
+    /**
+     * Return path to the for blade compiled files.
+     *
+     * @return string|null
+     */
+    protected function bladeCompiledPath(): string|null
+    {
+        return null;
     }
 
     /**
@@ -296,7 +306,9 @@ abstract class Command extends BaseCommand
             filesystem: new Filesystem,
         ));
 
-        $blade->setCompiledPath($this->defaultCompiledPath());
+        $compilePath = $this->bladeCompiledPath() ?:$this->defaultBladeCompiledPath();
+
+        $blade->setCompiledPath($compilePath);
 
         return $blade;
     }

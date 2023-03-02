@@ -387,6 +387,11 @@ it('can compile files with blade', function () {
     {
         protected $signature = 'example';
 
+        protected function bladeCompiledPath(): string|null
+        {
+            return __DIR__.'/.compiled';
+        }
+
         public function handle()
         {
             $testFilePath = test_mock_file_path('test-blade-file');
