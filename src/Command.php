@@ -539,7 +539,6 @@ abstract class Command extends BaseCommand
         }
     }
 
-
     /**
      * Execute the command.
      *
