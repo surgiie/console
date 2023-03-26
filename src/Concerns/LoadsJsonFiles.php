@@ -30,8 +30,6 @@ trait LoadsJsonFiles
 
     /**
      * Loads a json file and returns parsed data as an array.
-     *
-     * @param  string  $error
      */
     public function loadJsonFile(string $path): array
     {
