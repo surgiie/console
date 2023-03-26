@@ -21,7 +21,7 @@ class Factory extends ComponentsFactory
         try {
             return parent::__call($method, $parameters);
         }catch (InvalidArgumentException){
-            $component = '\Surgiie\Support\Console\View\Components\\'.ucfirst($method);
+            $component = '\Surgiie\Console\Support\Console\View\Components\\'.ucfirst($method);
 
             throw_unless(class_exists($component), new InvalidArgumentException(sprintf(
                 'Console component [%s] not found.', $method
