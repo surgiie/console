@@ -219,3 +219,64 @@ it('checks requirement via invokable classes', function () {
         'Doing Stuff...'
     );
 });
+
+it('calls succeeded when handle returns 0', function () {
+    $command = new class extends ConsoleCommand
+    {
+        protected $signature = 'example';
+
+        public function succeeded()
+        {
+            $this->components->info('Command Succeeded!');
+        }
+
+        public function handle()
+        {
+            return 0;
+        }
+    };
+
+    $command = new $command;
+    $command->setLaravel($this->container);
+    $output = new BufferedOutput();
+
+    $input = new ArrayInput([]);
+
+    $status = $command->run($input, $output);
+    expect($status)->toBe(0);
+    $commandOutput = $output->fetch();
+
+    $this->assertTrue(
+        str_contains(trim($commandOutput), 'INFO  Command Succeeded!')
+    );
+});
+
+it('calls failed when handle returns 1', function () {
+    $command = new class extends ConsoleCommand
+    {
+        protected $signature = 'example';
+
+        public function failed()
+        {
+            $this->components->error('Command Failed!');
+        }
+
+        public function handle()
+        {
+            return 1;
+        }
+    };
+
+    $command = new $command;
+    $command->setLaravel($this->container);
+    $output = new BufferedOutput();
+
+    $input = new ArrayInput([]);
+
+    $status = $command->run($input, $output);
+    expect($status)->toBe(1);
+    $commandOutput = $output->fetch();
+    $this->assertTrue(
+        str_contains(trim($commandOutput), 'ERROR  Command Failed!')
+    );
+});

@@ -8,9 +8,6 @@ trait FromPropertyOrMethod
 {
     /**
      * Get the value of a property or method where property is prioritized.
-     *
-     * @param  mixed  $default
-     * @return mixed
      */
     protected function fromPropertyOrMethod(string $name, $default = null)
     {

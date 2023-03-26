@@ -7,17 +7,19 @@ use Carbon\Exceptions\InvalidFormatException;
 use Closure;
 use Illuminate\Console\Command as LaravelCommand;
 use Illuminate\Console\Contracts\NewLineAware;
+use Illuminate\Console\OutputStyle;
 use Illuminate\Filesystem\Filesystem;
 use Illuminate\Support\Collection;
+use Illuminate\Translation\FileLoader;
+use Illuminate\Translation\Translator;
+use Illuminate\Validation\Factory as ValidatorFactory;
 use Illuminate\Validation\Validator;
 use InvalidArgumentException;
 use LaravelZero\Framework\Commands\Command as LaravelZeroCommand;
 use ReflectionException;
 use Surgiie\Blade\Blade;
 use Surgiie\Console\Concerns\FromPropertyOrMethod;
-use Surgiie\Console\Concerns\WithTransformers;
-use Surgiie\Console\Concerns\WithValidation;
-use Surgiie\Console\Exceptions\ExitCommandException;
+use Surgiie\Console\Exceptions\ExitException;
 use Surgiie\Console\Exceptions\FailedRequirementException;
 use Surgiie\Console\Support\Task;
 use Surgiie\Transformer\Concerns\UsesTransformer;
@@ -131,22 +133,35 @@ abstract class Command extends BaseCommand
     }
 
     /**
-     * Throw an ExitCommandException.
+     * Throw an ExitException.
      *
-     *
-     * @throws \Surgiie\Console\Exceptions\ExitCommandException
+     * @throws \Surgiie\Console\Exceptions\ExitException
      */
     protected function exit(string $error = '', int $code = 1, string $level = 'error'): void
     {
-        throw new ExitCommandException($error, $code, $level);
+        throw new ExitException($error, $code, $level);
+    }
+
+    /**
+     * The transformer or casts to run on command data.
+     */
+    protected function transformers(): array
+    {
+        return [];
+    }
+
+    /**
+     * The transformer or casts to run on command data after validation.
+     */
+    protected function transformersAfterValidation(): array
+    {
+        return [];
     }
 
     /**
      * Renders a console view with termwind renderer.
-     *
-     * @return void
      */
-    protected function consoleView(string $view, array $data, int $verbosity = OutputInterface::VERBOSITY_NORMAL)
+    protected function consoleView(string $view, array $data, int $verbosity = OutputInterface::VERBOSITY_NORMAL): void
     {
         renderUsing($this->output);
 
@@ -162,20 +177,16 @@ abstract class Command extends BaseCommand
 
     /**
      * Get the output style instance.
-     *
-     * @return \Illuminate\Console\OutputStyle
      */
-    public function getOutputStyle()
+    public function getOutputStyle(): OutputStyle
     {
         return $this->output;
     }
 
     /**
      * Clear terminal line if the terminal supports escape sequences.
-     *
-     * @return void
      */
-    public function clearTerminalLine()
+    public function clearTerminalLine(): void
     {
         if ($this->output->isDecorated()) {
             // Move the cursor to the beginning of the line
@@ -187,10 +198,8 @@ abstract class Command extends BaseCommand
 
     /**
      * Hide terminal cursor if the terminal supports escape sequences.
-     *
-     * @return void
      */
-    public function hideCursor()
+    public function hideCursor(): void
     {
         if ($this->output->isDecorated()) {
             $this->output->write("\e[?25l");
@@ -200,10 +209,8 @@ abstract class Command extends BaseCommand
     /**
      * Unhide terminal cursor if the terminal supports escape
      * sequences and assuming the cursor is currently hidden.
-     *
-     * @return void
      */
-    public function unhideCursor()
+    public function unhideCursor(): void
     {
         if ($this->output->isDecorated()) {
             $this->output->write("\e[?25h");
@@ -212,10 +219,8 @@ abstract class Command extends BaseCommand
 
     /**
      * Erase previous terminal line if the terminal supports escape sequences.
-     *
-     * @return void
      */
-    public function erasePreviousLine()
+    public function erasePreviousLine(): void
     {
         if ($this->output->isDecorated()) {
             $this->output->write("\e[1A\e[K");
@@ -225,6 +230,7 @@ abstract class Command extends BaseCommand
     /**
      * Get a cached value from the cache array or set it in cache with the given callback.
      *
+     * @param  \Closure  $createWith
      * @return mixed
      */
     public function fromArrayCache(string $key, ?Closure $createWith = null)
@@ -238,34 +244,38 @@ abstract class Command extends BaseCommand
 
     /**
      * Get a cached value from the cache array.
-     *
-     * @return bool
      */
-    public function hasArrayCacheValue(string $key)
+    public function hasArrayCacheValue(string $key): bool
     {
         return array_key_exists($key, $this->cache);
     }
 
     /**
-     * Return path to the default path for blade compiled files.
+     * Check if the current os is windows.
      */
-    protected function defaultBladeCompiledPath(): string
+    public function isWindows(): bool
     {
-        if (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') {
+        return strtoupper(substr(PHP_OS, 0, 3)) === 'WIN';
+    }
+
+    /**
+     * Return path compiled directory used for the blade engine.
+     */
+    protected function bladeCompiledPath(): string
+    {
+        // use tests directory when running unit tests in laravel/laravel-zero apps.
+        if (property_exists($this, 'app') && $this->app->runningUnitTests()) {
+            return base_path('tests/.compiled');
+        }
+
+        // otherwirse use the tmp directory.
+        if ($this->isWindows()) {
             $tmp = getenv('TEMP');
         } else {
             $tmp = '/tmp';
         }
 
         return rtrim($tmp, DIRECTORY_SEPARATOR).DIRECTORY_SEPARATOR.'.compiled';
-    }
-
-    /**
-     * Return path to the for blade compiled files.
-     */
-    protected function bladeCompiledPath(): string|null
-    {
-        return null;
     }
 
     /**
@@ -278,7 +288,7 @@ abstract class Command extends BaseCommand
             filesystem: new Filesystem,
         ));
 
-        $compilePath = $this->bladeCompiledPath() ?: $this->defaultBladeCompiledPath();
+        $compilePath = $this->bladeCompiledPath();
 
         $blade->setCompiledPath($compilePath);
 
@@ -315,10 +325,8 @@ abstract class Command extends BaseCommand
 
     /**
      * Print a debug view console component message if a debug option exists on the command.
-     *
-     * @return void
      */
-    protected function debug(string $message, bool $clearLine = false)
+    protected function debug(string $message, bool $clearLine = false): void
     {
         if ($this->hasOption('debug') && $this->data->get('debug')) {
             if ($clearLine) {
@@ -332,7 +340,7 @@ abstract class Command extends BaseCommand
      * Return the merged options and arguments data collection or a value from it if a key is passed.
      *
      * @param  mixed  $default
-     * @return \Illuminate\Support\Collection|mixed
+     * @return mixed
      */
     public function getData(?string $key = null, $default = null)
     {
@@ -347,7 +355,7 @@ abstract class Command extends BaseCommand
      * Return the arbitrary data collection or a value from it if a key is passed.
      *
      * @param  mixed  $default
-     * @return \Illuminate\Support\Collection|mixed
+     * @return mixed
      */
     public function getArbitraryData(?string $key = null, $default = null)
     {
@@ -366,8 +374,10 @@ abstract class Command extends BaseCommand
         return extension_loaded('pcntl');
     }
 
-    /**Run a new command task.*/
-    public function runTask(string $title = '', $task = null, string $finishedText = '')
+    /**
+     * Run a new command task.
+     */
+    public function runTask(string $title = '', Closure $task = null, string $finishedText = ''): Task
     {
         $task = $this->laravel->make(Task::class, ['title' => $title, 'command' => $this, 'callback' => $task]);
 
@@ -408,7 +418,7 @@ abstract class Command extends BaseCommand
     }
 
     /**
-     * Check if an option was passed in the terminal/command call.
+     * Check if an option was passed in the command call.
      */
     protected function optionWasPassed(string $name): bool
     {
@@ -434,6 +444,7 @@ abstract class Command extends BaseCommand
         }
 
         $this->commandTokensString = implode(' ', $tokens);
+
         // parse arbitrary options if set.
         if ($this->fromPropertyOrMethod('arbitraryOptions', false)) {
             $parser = new OptionsParser($tokens);
@@ -448,28 +459,12 @@ abstract class Command extends BaseCommand
             //rebind input definition
             $input->bind($definition);
         }
-
-        $mergedData = array_merge($this->arguments(), $this->options());
-
-        if ($this->castDatesToCarbon) {
-            try {
-                $mergedData = (new DataTransformer($mergedData, ['*date*' => ['?', Carbon::class]]))->transform();
-            } catch (InvalidFormatException $e) {
-                $this->exit($e->getMessage());
-            }
-        }
-
-        $this->data = collect($mergedData)->filter(function ($v) {
-            return ! is_null($v);
-        });
     }
 
     /**
      * Ask for input with the given name or ask user for it if empty.
-     *
-     * @return string
      */
-    protected function getOrAskForInput(string $name, array $options = [])
+    protected function getOrAskForInput(string $name, array $options = []): string
     {
         $input = $this->data->get($name);
 
@@ -477,25 +472,9 @@ abstract class Command extends BaseCommand
             return $input;
         }
 
-        $rules = $options['rules'] ?? [];
-        $messages = $options['messages'] ?? [];
-        $attributes = $options['attributes'] ?? [];
-        $transformers = $options['transformers'] ?? [];
-        $transformersAfterValidation = $options['transformersAfterValidation'] ?? [];
-
         $secret = $options['secret'] ?? false;
         $confirm = $options['confirm'] ?? false;
 
-        $validate = function ($input) use ($name, $rules, $messages, $attributes) {
-            if ($this->classUsesTrait($this, WithValidation::class)) {
-                $validator = $this->validator([$name => $input], [$name => $rules], $messages, $attributes);
-
-                if ($validator->fails()) {
-                    $this->displayValidationErrors($validator, isUserInput: true);
-                    $this->exit();
-                }
-            }
-        };
         $method = $secret ? 'secret' : 'ask';
         $label = $options['label'] ?? str_replace(['_', '-'], [' ', ' '], $name);
 
@@ -503,11 +482,17 @@ abstract class Command extends BaseCommand
         $this->message('INPUT', $message, fg: 'white', bg: 'green');
         $input = $this->$method('ctrl-c to exit');
 
-        $input = $this->transform($input, $transformers);
+        $input = $this->transform($input, $options['transformers'] ?? []);
 
-        $validate($input);
+        $this->validate(
+            data: [$name => $input],
+            rules: [$name => $options['rules'] ?? []],
+            messages: $options['messages'] ?? [],
+            attributes: $options['attributes'] ?? [],
+            isUserInput: true
+        );
 
-        $input = $this->transform($input, $transformersAfterValidation);
+        $input = $this->transform($input, $options['transformersAfterValidation'] ?? []);
 
         if ($confirm) {
             $this->message('CONFIRM INPUT', "Confirm $label:", fg: 'black', bg: 'cyan');
@@ -526,6 +511,8 @@ abstract class Command extends BaseCommand
 
     /**
      * Check if a dependency is installed or if the given requirement passes..
+     *
+     * @param  mixed  $requirement
      *
      * @throws \Surgiie\Console\Exceptions\FailedRequirementException
      */
@@ -557,6 +544,8 @@ abstract class Command extends BaseCommand
 
     /**
      * Execute the command.
+     *
+     * @return int
      */
     protected function execute(InputInterface $input, OutputInterface $output)
     {
@@ -573,21 +562,17 @@ abstract class Command extends BaseCommand
             }
 
             // transform the data before validation
-            if (($withTransformers = $this->classUsesTrait($this, WithTransformers::class)) && $transformers = $this->transformers()) {
-                $this->data = collect(
-                    $this->transformData($this->data->all(), $transformers)
-                );
-            }
+            $this->data = collect(
+                $this->transformData($this->data->all(), $this->transformers())
+            );
 
             // validate the data.
-            $this->validate();
+            $this->validate($this->data->all());
 
             // post validation transformation
-            if ($withTransformers && $transformers = $this->transformersAfterValidation()) {
-                $this->data = collect(
-                    $this->transformData($this->data->all(), $transformers)
-                );
-            }
+            $this->data = collect(
+                $this->transformData($this->data->all(), $this->transformersAfterValidation())
+            );
 
             $this->data = $this->data->filter(function ($value, $name) {
                 $isArbitrary = $this->arbitraryData->has($name);
@@ -602,9 +587,7 @@ abstract class Command extends BaseCommand
 
             // run the command
             $status = $this->executeCommand();
-
-            return $status;
-        } catch (ExitCommandException $e) {
+        } catch (ExitException $e) {
             $level = $e->getLevel();
 
             $message = $e->getMessage();
@@ -613,27 +596,99 @@ abstract class Command extends BaseCommand
                 $this->components->$level($e->getMessage());
             }
 
-            return $e->getStatus();
+            $status = $e->getStatus();
         }
+
+        if ($status == 0 && method_exists($this, 'succeeded')) {
+            $this->laravel->call([$this, 'succeeded']);
+        }
+        if ($status >= 1 && method_exists($this, 'failed')) {
+            $this->laravel->call([$this, 'failed']);
+        }
+
+        return $status;
+    }
+
+    /**
+     * Interact with the user before validating the input.
+     *
+     * @return void
+     */
+    protected function interact(InputInterface $input, OutputInterface $output)
+    {
+        parent::interact($input, $output);
+
+        $mergedData = array_merge($this->arguments(), $this->options());
+
+        if ($this->castDatesToCarbon) {
+            try {
+                $mergedData = (new DataTransformer($mergedData, ['*date*' => ['?', Carbon::class]]))->transform();
+            } catch (InvalidFormatException $e) {
+                $this->exit($e->getMessage());
+            }
+        }
+
+        $this->data = collect($mergedData)->filter(function ($v) {
+            return ! is_null($v);
+        });
+    }
+
+    /**
+     * Get the path to directory holding the lang file for validation.
+     */
+    protected function getValidationLangPath(): string
+    {
+        return __DIR__.'/resources/lang';
+    }
+
+    /**
+     * Get the locale to use for validation.
+     */
+    protected function getValidationLangLocale(): string
+    {
+        return 'en';
+    }
+
+    /**
+     * Create a new validator instance.
+     *
+     * @param  array  $rules
+     * @param  array  $messages
+     * @param  array  $attributes
+     * @return \Illuminate\Validation\Validator
+     */
+    protected function validator(array $data, ?array $rules = null, ?array $messages = null, ?array $attributes = null)
+    {
+        $loader = new FileLoader(new Filesystem, $this->getValidationLangPath());
+
+        $translator = new Translator($loader, $this->getValidationLangLocale());
+
+        $factory = new ValidatorFactory($translator, $this->laravel);
+
+        return $factory->make(
+            $data,
+            $rules ?: $this->fromPropertyOrMethod('rules', []),
+            $messages ?: $this->fromPropertyOrMethod('messages', []),
+            $attributes ?: $this->fromPropertyOrMethod('attributes', []),
+        );
     }
 
     /**
      * Validate the current data for options and arguments.
      */
-    protected function validate(): void
+    protected function validate(array $data, ?array $rules = null, ?array $messages = null, ?array $attributes = null, bool $isUserInput = false): void
     {
-        if ($this->classUsesTrait($this, WithValidation::class)) {
-            $validator = $this->validator($this->data->all());
+        $validator = $this->validator($data, $rules, $messages, $attributes);
 
-            if ($validator->fails()) {
-                $this->displayValidationErrors($validator);
-                $this->exit();
-            }
+        if ($validator->fails()) {
+            $this->displayValidationErrors($validator, $isUserInput);
+            $this->exit();
         }
     }
 
     /**
      * Display the validation errors that exist on the given validator.
+     *
      *
      * @return void
      */
@@ -643,15 +698,15 @@ abstract class Command extends BaseCommand
             $isOption = $this->hasOption($name);
             $isArgument = $this->hasArgument($name);
 
+            $type = 'option';
+
             if ($isUserInput) {
                 $name = str_replace(['-', '_'], [' ', ' '], $name);
-                $type = '';
-            } elseif (! $isOption && ! $isArgument) {
+                $type = 'input';
+            } elseif ($isOption || $this->arbitraryData->has($name)) {
                 $name = '--'.$name;
-                $type = 'option';
-            } else {
-                $name = $isOption ? '--'.$name : $name;
-                $type = $isOption ? 'option' : 'argument';
+            } elseif ($isArgument) {
+                $type = 'argument';
             }
 
             $this->components->error(str_replace([':name', ':type'], [$name, $type], $errors[0]));

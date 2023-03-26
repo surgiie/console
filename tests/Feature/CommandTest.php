@@ -7,8 +7,6 @@ use Mockery as m;
 use Surgiie\Console\Command as ConsoleCommand;
 use Surgiie\Console\Concerns\LoadsEnvFiles;
 use Surgiie\Console\Concerns\LoadsJsonFiles;
-use Surgiie\Console\Concerns\WithTransformers;
-use Surgiie\Console\Concerns\WithValidation;
 use Symfony\Component\Console\Input\ArgvInput;
 use Symfony\Component\Console\Input\ArrayInput;
 use Symfony\Component\Console\Output\BufferedOutput;
@@ -22,8 +20,6 @@ beforeEach(function () {
 it('validates options and arguments', function () {
     $command = new class extends ConsoleCommand
     {
-        use WithValidation;
-
         protected $signature = 'example {foo}
                                    {--dooms-day=}';
 
@@ -138,15 +134,13 @@ it('can run task with data', function () {
 it('can have transformers', function () {
     $command = new class extends ConsoleCommand
     {
-        use WithTransformers;
-
         protected $signature = 'example {--first-name=}{--last-name=}';
 
         public function handle()
         {
         }
 
-        protected function transformers()
+        protected function transformers(): array
         {
             return [
                 'first-name' => 'ucfirst',
@@ -172,8 +166,6 @@ it('can have transformers', function () {
 it('can have transformers after validation', function () {
     $command = new class extends ConsoleCommand
     {
-        use WithTransformers, WithValidation;
-
         protected $signature = 'example {foo}
                                    {--dooms-day=}';
 
@@ -182,14 +174,14 @@ it('can have transformers after validation', function () {
             return ['foo' => 'numeric|min:4', 'dooms-day' => 'required|date'];
         }
 
-        protected function transformers()
+        protected function transformers(): array
         {
             return [
                 'foo' => ['intval'],
             ];
         }
 
-        protected function transformersAfterValidation()
+        protected function transformersAfterValidation(): array
         {
             return [
                 'foo' => [fn ($v) => $v + 1],
@@ -316,8 +308,6 @@ it('can confirm ask for input.', function () {
 it('can ask for input and validate', function () {
     $command = new class extends ConsoleCommand
     {
-        use WithValidation;
-
         protected $signature = 'example {--dooms-day=}';
 
         public function handle()
@@ -344,15 +334,13 @@ it('can ask for input and validate', function () {
 
     $output = $output->fetch();
     expect($output)->toContain('INPUT  Enter dooms day:');
-    expect($output)->toContain('ERROR  The dooms day is not a valid date.');
+    expect($output)->toContain('ERROR  The dooms day input is not a valid date.');
     expect($command->getData('foo'))->toBeNull();
 });
 
 it('can ask for input and transform', function () {
     $command = new class extends ConsoleCommand
     {
-        use WithValidation;
-
         protected $signature = 'example {--number=}';
 
         public function handle()
@@ -387,7 +375,7 @@ it('can compile files with blade', function () {
     {
         protected $signature = 'example';
 
-        protected function bladeCompiledPath(): string|null
+        protected function bladeCompiledPath(): string
         {
             return __DIR__.'/.compiled';
         }

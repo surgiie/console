@@ -23,7 +23,6 @@ All arguments and options are merged into a single `$this->data` collection, giv
 namespace App\Console\Commands;
 
 use Surgiie\Console\Command;
-use Surgiie\Console\Concerns\WithValidation;
 
 class ExampleCommand extends Command
 {
@@ -43,7 +42,6 @@ class ExampleCommand extends Command
 namespace App\Console\Commands;
 
 use Surgiie\Console\Command;
-use Surgiie\Console\Concerns\WithValidation;
 
 class ExampleCommand extends Command
 {
@@ -84,11 +82,9 @@ Utilize Laravel Validation for Arguments & Options
 namespace App\Console\Commands;
 
 use Surgiie\Console\Command;
-use Surgiie\Console\Concerns\WithValidation;
 
 class ExampleCommand extends Command
 {
-    use WithValidation;
 
     protected $signature = "example {--iterations=}";
 
@@ -149,20 +145,19 @@ Transform, format, or sanitize input and arguments easily before `handle` is cal
 
 ```php
 
-protected function transformers()
+protected function transformers() : array
 {
     return [
         'some-option'=>['trim', 'ucwords']
     ];
 }
 
-protected function transformersAfterValidation()
+protected function transformersAfterValidation() : array
 {
     return [
         'some-option'=>['strtoupper']
     ];
 }
-
 
 ```
 **Note* - For more, read the [surgiie/tranformer](https://github.com/surgiie/tranformer) readme docs.
@@ -187,7 +182,7 @@ class ExampleCommand extends Command
 
     protected $signature = "example {--name=}";
 
-    public function handle()
+    public function handle(): int
     {
         // user will be asked if --name was not passed/set:
         $something = $this->getOrAskForInput("name")
@@ -195,8 +190,9 @@ class ExampleCommand extends Command
         $something = $this->getOrAskForInput("name", [
             // can use with validation:
             'rules'=> ['required', 'max:20'],
-            // can use transformers:
+            // transformer args/options before validation:
             'transformers'=> ['trim', 'strtoupper'],
+            // transform args/options after validation
             'transformersAfterValidation'=> ['trim', 'strtoupper'],
             // have user confirm by asking for value twice until values match:
             'confirm'=>true,
@@ -213,7 +209,7 @@ Provide a list of requirements before the handle is called:
 
 ```php
 
-    public function requireSomethingOrFail()
+    public function requireSomethingOrFail(): string
     {
         // throw an exception:
         throw new FailedRequirementException("Failed to meet some requirment");
@@ -221,7 +217,7 @@ Provide a list of requirements before the handle is called:
         return "Failed to meet some requirement";
     }
 
-    public function requirements()
+    public function requirements(): array
     {
         return [
             'docker', //default for a string value checks if 'docker' is in $PATH with `which <value>`
@@ -253,8 +249,8 @@ public function handle()
     $contents = $this->compile('/some/file', ['var'=>'example']);
 }
 
-// set a custom path for compiled/cached files. Default is /tmp/.compiled
-public function bladeCompiledPath(): string|null
+// set a custom path for compiled/cached files. Default is /tmp/.compiled or tests/.compiled when running unit tests
+public function bladeCompiledPath(): string
 {
     return '/custom/directory';
 }
@@ -304,3 +300,24 @@ This works by using `serialize` on the data and writing it to a temporary file w
 
 
 **Note** If prefer not to run tasks concurrently or with a spinner as mentioned above, this functionality can be disabled with `Surgiie\Console\Command::disableConcurrentTasks()`. This is desired in tests as it prevents overhead when testing commands.
+
+
+
+## Call Succeeded/Failed Functions Automatically
+
+Automatically calls `succeeded` and `failed` based on `handle` exit code.
+
+```php
+
+public function succeeded()
+{
+    // called when handle int is 0
+    $this->components->info("It ran successfully");
+}
+public function failed()
+{
+    // called when handle int is 1
+    $this->components->info("It didnt run successfully");
+}
+
+```

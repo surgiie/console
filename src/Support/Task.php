@@ -86,7 +86,7 @@ class Task
     }
 
     /**
-     * Get the remembered data.
+     * Get the remembered data when running tasks concurrently.
      */
     public function data(): array
     {

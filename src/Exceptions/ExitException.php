@@ -4,10 +4,10 @@ namespace Surgiie\Console\Exceptions;
 
 use Exception;
 
-class ExitCommandException extends Exception
+class ExitException extends Exception
 {
     /**
-     * Construct a new ExitCommandException instance.
+     * Construct a new ExitException instance.
      */
     public function __construct(string $message, int $status = 1, string $level = 'error')
     {
@@ -18,10 +18,8 @@ class ExitCommandException extends Exception
 
     /**
      * Get the message level to use for the exit exception message.
-     *
-     * @return void
      */
-    public function getLevel()
+    public function getLevel(): string
     {
         return $this->level;
     }

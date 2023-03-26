@@ -32,8 +32,7 @@ class OptionsParser
     }
 
     /**
-     * Check if a token is --option or --option=value
-     * format and return the matched array.
+     * Check if a token is --option or --option=value format and return the matched array.
      */
     protected function isOptionToken(string $token): array
     {
@@ -44,7 +43,7 @@ class OptionsParser
     }
 
     /**
-     *  Parse the set options.
+     * Parse the set options.
      */
     public function parse(): array
     {
