@@ -2,8 +2,8 @@
 
 namespace Surgiie\Console\Support\Console\View;
 
-use InvalidArgumentException;
 use Illuminate\Console\View\Components\Factory as ComponentsFactory;
+use InvalidArgumentException;
 
 class Factory extends ComponentsFactory
 {
