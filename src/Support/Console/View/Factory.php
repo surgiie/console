@@ -2,8 +2,8 @@
 
 namespace Surgiie\Console\Support\Console\View;
 
-use InvalidArgumentException;
 use Illuminate\Console\View\Components\Factory as ComponentsFactory;
+use InvalidArgumentException;
 
 class Factory extends ComponentsFactory
 {
@@ -20,7 +20,7 @@ class Factory extends ComponentsFactory
     {
         try {
             parent::__call($method, $parameters);
-        }catch (InvalidArgumentException){
+        } catch (InvalidArgumentException) {
             $component = '\Surgiie\Support\Console\View\Components\\'.ucfirst($method);
 
             throw_unless(class_exists($component), new InvalidArgumentException(sprintf(

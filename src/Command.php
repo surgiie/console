@@ -2,36 +2,36 @@
 
 namespace Surgiie\Console;
 
-use Closure;
 use Carbon\Carbon;
-use ReflectionException;
-use Surgiie\Blade\Blade;
-use function Termwind\render;
-use InvalidArgumentException;
-use Surgiie\Console\Support\Task;
-use function Termwind\renderUsing;
-use Illuminate\Support\Collection;
+use Carbon\Exceptions\InvalidFormatException;
+use Closure;
+use Illuminate\Console\Command as LaravelCommand;
+use Illuminate\Console\Contracts\NewLineAware;
 use Illuminate\Console\OutputStyle;
-use Illuminate\Validation\Validator;
 use Illuminate\Filesystem\Filesystem;
+use Illuminate\Support\Collection;
 use Illuminate\Translation\FileLoader;
 use Illuminate\Translation\Translator;
-use Symfony\Component\Process\Process;
-use Surgiie\Transformer\DataTransformer;
-use Carbon\Exceptions\InvalidFormatException;
-use Surgiie\Console\Exceptions\ExitException;
-use Illuminate\Console\Contracts\NewLineAware;
-use Symfony\Component\Console\Input\ArrayInput;
-use Symfony\Component\Console\Input\StringInput;
-use Illuminate\Console\Command as LaravelCommand;
-use Surgiie\Console\Support\Console\View\Factory;
-use Surgiie\Transformer\Concerns\UsesTransformer;
-use Surgiie\Console\Concerns\FromPropertyOrMethod;
-use Symfony\Component\Console\Input\InputInterface;
-use Symfony\Component\Console\Output\OutputInterface;
 use Illuminate\Validation\Factory as ValidatorFactory;
-use Surgiie\Console\Exceptions\FailedRequirementException;
+use Illuminate\Validation\Validator;
+use InvalidArgumentException;
 use LaravelZero\Framework\Commands\Command as LaravelZeroCommand;
+use ReflectionException;
+use Surgiie\Blade\Blade;
+use Surgiie\Console\Concerns\FromPropertyOrMethod;
+use Surgiie\Console\Exceptions\ExitException;
+use Surgiie\Console\Exceptions\FailedRequirementException;
+use Surgiie\Console\Support\Console\View\Factory;
+use Surgiie\Console\Support\Task;
+use Surgiie\Transformer\Concerns\UsesTransformer;
+use Surgiie\Transformer\DataTransformer;
+use Symfony\Component\Console\Input\ArrayInput;
+use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Input\StringInput;
+use Symfony\Component\Console\Output\OutputInterface;
+use Symfony\Component\Process\Process;
+use function Termwind\render;
+use function Termwind\renderUsing;
 
 if (class_exists(LaravelZeroCommand::class)) {
     abstract class BaseCommand extends LaravelZeroCommand
@@ -495,7 +495,7 @@ abstract class Command extends BaseCommand
             $confirmInput = $this->components->$method("Confirm $label:");
 
             while ($input != $confirmInput) {
-                $confirmInput = $this->components->$method("Confirmation doesnt match, try again:");
+                $confirmInput = $this->components->$method('Confirmation doesnt match, try again:');
             }
         }
 
@@ -538,12 +538,9 @@ abstract class Command extends BaseCommand
             throw new FailedRequirementException($error);
         }
     }
+
     /**
      * Run the console command.
-     *
-     * @param  \Symfony\Component\Console\Input\InputInterface  $input
-     * @param  \Symfony\Component\Console\Output\OutputInterface  $output
-     * @return int
      */
     public function run(InputInterface $input, OutputInterface $output): int
     {
