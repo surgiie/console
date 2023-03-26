@@ -19,7 +19,7 @@ class Factory extends ComponentsFactory
     public function __call($method, $parameters)
     {
         try {
-            parent::__call($method, $parameters);
+            return parent::__call($method, $parameters);
         }catch (InvalidArgumentException){
             $component = '\Surgiie\Support\Console\View\Components\\'.ucfirst($method);
 

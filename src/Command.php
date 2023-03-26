@@ -538,29 +538,7 @@ abstract class Command extends BaseCommand
             throw new FailedRequirementException($error);
         }
     }
-    /**
-     * Run the console command.
-     *
-     * @param  \Symfony\Component\Console\Input\InputInterface  $input
-     * @param  \Symfony\Component\Console\Output\OutputInterface  $output
-     * @return int
-     */
-    public function run(InputInterface $input, OutputInterface $output): int
-    {
-        $this->output = $this->laravel->make(
-            OutputStyle::class, ['input' => $input, 'output' => $output]
-        );
 
-        $this->components = $this->laravel->make(Factory::class, ['output' => $this->output]);
-
-        try {
-            return parent::run(
-                $this->input = $input, $this->output
-            );
-        } finally {
-            $this->untrap();
-        }
-    }
 
     /**
      * Execute the command.
@@ -569,6 +547,8 @@ abstract class Command extends BaseCommand
      */
     protected function execute(InputInterface $input, OutputInterface $output)
     {
+        $this->components = $this->laravel->make(Factory::class, ['output' => $this->output]);
+
         try {
             $status = 0;
 
