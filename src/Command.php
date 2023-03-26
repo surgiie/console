@@ -2,35 +2,36 @@
 
 namespace Surgiie\Console;
 
-use Carbon\Carbon;
-use Carbon\Exceptions\InvalidFormatException;
 use Closure;
-use Illuminate\Console\Command as LaravelCommand;
-use Illuminate\Console\Contracts\NewLineAware;
-use Illuminate\Console\OutputStyle;
-use Illuminate\Filesystem\Filesystem;
-use Illuminate\Support\Collection;
-use Illuminate\Translation\FileLoader;
-use Illuminate\Translation\Translator;
-use Illuminate\Validation\Factory as ValidatorFactory;
-use Illuminate\Validation\Validator;
-use InvalidArgumentException;
-use LaravelZero\Framework\Commands\Command as LaravelZeroCommand;
+use Carbon\Carbon;
 use ReflectionException;
 use Surgiie\Blade\Blade;
-use Surgiie\Console\Concerns\FromPropertyOrMethod;
-use Surgiie\Console\Exceptions\ExitException;
-use Surgiie\Console\Exceptions\FailedRequirementException;
-use Surgiie\Console\Support\Task;
-use Surgiie\Transformer\Concerns\UsesTransformer;
-use Surgiie\Transformer\DataTransformer;
-use Symfony\Component\Console\Input\ArrayInput;
-use Symfony\Component\Console\Input\InputInterface;
-use Symfony\Component\Console\Input\StringInput;
-use Symfony\Component\Console\Output\OutputInterface;
-use Symfony\Component\Process\Process;
 use function Termwind\render;
+use InvalidArgumentException;
+use Surgiie\Console\Support\Task;
 use function Termwind\renderUsing;
+use Illuminate\Support\Collection;
+use Illuminate\Console\OutputStyle;
+use Illuminate\Validation\Validator;
+use Illuminate\Filesystem\Filesystem;
+use Illuminate\Translation\FileLoader;
+use Illuminate\Translation\Translator;
+use Symfony\Component\Process\Process;
+use Surgiie\Transformer\DataTransformer;
+use Carbon\Exceptions\InvalidFormatException;
+use Surgiie\Console\Exceptions\ExitException;
+use Illuminate\Console\Contracts\NewLineAware;
+use Symfony\Component\Console\Input\ArrayInput;
+use Symfony\Component\Console\Input\StringInput;
+use Illuminate\Console\Command as LaravelCommand;
+use Surgiie\Console\Support\Console\View\Factory;
+use Surgiie\Transformer\Concerns\UsesTransformer;
+use Surgiie\Console\Concerns\FromPropertyOrMethod;
+use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Output\OutputInterface;
+use Illuminate\Validation\Factory as ValidatorFactory;
+use Surgiie\Console\Exceptions\FailedRequirementException;
+use LaravelZero\Framework\Commands\Command as LaravelZeroCommand;
 
 if (class_exists(LaravelZeroCommand::class)) {
     abstract class BaseCommand extends LaravelZeroCommand
@@ -115,7 +116,7 @@ abstract class Command extends BaseCommand
     /**
      * Get the console view components instance.
      *
-     * @return Illuminate\Console\View\Components;
+     * @return \Surgiie\Console\Support\Console\View\Factory;
      */
     public function consoleViewComponents()
     {
@@ -478,9 +479,7 @@ abstract class Command extends BaseCommand
         $method = $secret ? 'secret' : 'ask';
         $label = $options['label'] ?? str_replace(['_', '-'], [' ', ' '], $name);
 
-        $message = "Enter $label:";
-        $this->message('INPUT', $message, fg: 'white', bg: 'green');
-        $input = $this->$method('ctrl-c to exit');
+        $input = $this->components->$method("What is the $label?");
 
         $input = $this->transform($input, $options['transformers'] ?? []);
 
@@ -492,17 +491,15 @@ abstract class Command extends BaseCommand
             isUserInput: true
         );
 
-        $input = $this->transform($input, $options['transformersAfterValidation'] ?? []);
-
         if ($confirm) {
-            $this->message('CONFIRM INPUT', "Confirm $label:", fg: 'black', bg: 'cyan');
-            $confirmInput = $this->$method('ctrl-c to exit');
+            $confirmInput = $this->components->$method("Confirm $label:");
 
             while ($input != $confirmInput) {
-                $this->message('CONFIRM FAILED', "Try $label confirmation again", fg: 'white', bg: 'red');
-                $confirmInput = $this->$method('ctrl-c to exit');
+                $confirmInput = $this->components->$method("Confirmation doesnt match, try again:");
             }
         }
+
+        $input = $this->transform($input, $options['transformersAfterValidation'] ?? []);
 
         $this->data->put($name, $input);
 
@@ -539,6 +536,29 @@ abstract class Command extends BaseCommand
 
         if ($error = trim($error ?? '')) {
             throw new FailedRequirementException($error);
+        }
+    }
+    /**
+     * Run the console command.
+     *
+     * @param  \Symfony\Component\Console\Input\InputInterface  $input
+     * @param  \Symfony\Component\Console\Output\OutputInterface  $output
+     * @return int
+     */
+    public function run(InputInterface $input, OutputInterface $output): int
+    {
+        $this->output = $this->laravel->make(
+            OutputStyle::class, ['input' => $input, 'output' => $output]
+        );
+
+        $this->components = $this->laravel->make(Factory::class, ['output' => $this->output]);
+
+        try {
+            return parent::run(
+                $this->input = $input, $this->output
+            );
+        } finally {
+            $this->untrap();
         }
     }
 

@@ -269,7 +269,6 @@ it('can ask for input if option or argument is not set.', function () {
     $command->run($input, $outputStyle);
 
     $output = trim($output->fetch());
-    expect($output)->toBe('INPUT  Enter foo:');
     expect($command->getData('foo'))->toBe('Bar');
 });
 
@@ -299,8 +298,6 @@ it('can confirm ask for input.', function () {
     $command->run($input, $outputStyle);
 
     $output = $output->fetch();
-    expect($output)->toContain('INPUT  Enter foo:');
-    expect($output)->toContain('CONFIRM INPUT  Confirm foo:');
 
     expect($command->getData('foo'))->toBe('Bar');
 });
@@ -333,7 +330,6 @@ it('can ask for input and validate', function () {
     $command->run($input, $outputStyle);
 
     $output = $output->fetch();
-    expect($output)->toContain('INPUT  Enter dooms day:');
     expect($output)->toContain('ERROR  The dooms day input is not a valid date.');
     expect($command->getData('foo'))->toBeNull();
 });
