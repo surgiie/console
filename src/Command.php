@@ -164,6 +164,8 @@ abstract class Command extends BaseCommand
      */
     protected function consoleView(string $view, array $data, int $verbosity = OutputInterface::VERBOSITY_NORMAL): void
     {
+        Blade::dontCacheCompiled();
+
         renderUsing($this->output);
 
         $view = rtrim($view, '.php');
@@ -174,6 +176,8 @@ abstract class Command extends BaseCommand
         }
 
         render((string) $this->compile($path, $data, removeCachedFile: true), $verbosity);
+
+        Blade::cacheCompiled();
     }
 
     /**
@@ -315,8 +319,6 @@ abstract class Command extends BaseCommand
      */
     public function message(string $title, string $content, string $bg = 'gray', string $fg = 'white')
     {
-        Blade::dontCacheCompiled();
-
         $this->consoleView('line', [
             'bgColor' => $bg,
             'marginTop' => ($this->output instanceof NewLineAware && $this->output->newLineWritten()) ? 0 : 1,
@@ -324,8 +326,6 @@ abstract class Command extends BaseCommand
             'title' => $title,
             'content' => $content,
         ]);
-
-        Blade::cacheCompiled();
     }
 
     /**
