@@ -315,6 +315,8 @@ abstract class Command extends BaseCommand
      */
     public function message(string $title, string $content, string $bg = 'gray', string $fg = 'white')
     {
+        Blade::dontCacheCompiled();
+
         $this->consoleView('line', [
             'bgColor' => $bg,
             'marginTop' => ($this->output instanceof NewLineAware && $this->output->newLineWritten()) ? 0 : 1,
@@ -322,6 +324,8 @@ abstract class Command extends BaseCommand
             'title' => $title,
             'content' => $content,
         ]);
+
+        Blade::cacheCompiled();
     }
 
     /**
