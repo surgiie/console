@@ -164,8 +164,6 @@ abstract class Command extends BaseCommand
      */
     protected function consoleView(string $view, array $data, int $verbosity = OutputInterface::VERBOSITY_NORMAL): void
     {
-        Blade::dontCacheCompiled();
-
         renderUsing($this->output);
 
         $view = rtrim($view, '.php');
@@ -175,9 +173,7 @@ abstract class Command extends BaseCommand
             $path = __DIR__."/resources/views/$view.php";
         }
 
-        render((string) $this->compile($path, $data, removeCachedFile: true), $verbosity);
-
-        Blade::cacheCompiled();
+        render((string) $this->compile($path, $data, cache: false), $verbosity);
     }
 
     /**
