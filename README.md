@@ -237,6 +237,24 @@ Provide a list of requirements before the handle is called:
 ```
 **Note** If any of the methods above return an error string or raise `FailedRequirementException`, the `handle` method will not be called.
 
+In addition, if you  need custom logic to check if a string path is available, you can overwrite the following method:
+
+```php
+/**
+ * Check if a executable is in $PATH.
+ *
+ * @param string $requirement
+ * @return string
+ */
+protected function checkWhichPath(string $requirement): string
+{
+    $process = (new Process(['which', $requirement]));
+
+    $process->run();
+
+    return $process->getOutput() == '' ? "This command requires $requirement." : '';
+}
+```
 
 ### Render Files With Blade Engine:
 An exented version of the blade engine is available to compile any textual file:

@@ -379,12 +379,14 @@ it('can compile files with blade', function () {
         public function handle()
         {
             $testFilePath = test_mock_file_path('test-blade-file');
+
             $contents = $this->compile($testFilePath, [
                 'name' => 'Bob',
                 'favoriteFood' => 'Pizza',
                 'includeAddress' => true,
                 'dogs' => ['Rex', 'Charlie'],
-            ]);
+            ], cache: false);
+
             $this->line($contents);
         }
     };

@@ -303,11 +303,11 @@ abstract class Command extends BaseCommand
     /**
      * Compile a textual file with blade using the given path and data.
      */
-    public function compile(string $path, array $data = [], bool $removeCachedFile = false): string
+    public function compile(string $path, array $data = [], bool $cache = true): string
     {
         $blade = $this->blade();
 
-        $result = $blade->compile($path, $data, removeCachedFile: $removeCachedFile);
+        $result = $blade->compile($path, $data, cache: $cache);
 
         return $result;
     }
@@ -511,6 +511,21 @@ abstract class Command extends BaseCommand
     }
 
     /**
+     * Check if a executable is in $PATH.
+     *
+     * @param string $requirement
+     * @return string
+     */
+    protected function checkWhichPath(string $requirement): string
+    {
+        $process = (new Process(['which', $requirement]));
+
+        $process->run();
+
+        return $process->getOutput() == '' ? "This command requires $requirement." : '';
+    }
+
+    /**
      * Check if a dependency is installed or if the given requirement passes..
      *
      * @param  mixed  $requirement
@@ -529,11 +544,7 @@ abstract class Command extends BaseCommand
             $instance = $this->laravel->make($requirement);
             $error = $this->laravel->call($instance);
         } elseif ($isString) {
-            $process = (new Process(['which', $requirement]));
-
-            $process->run();
-
-            $error = $process->getOutput() == '' ? "This command requires $requirement." : '';
+            $error = $this->checkWhichPath($requirement)?: '';
         } else {
             throw new InvalidArgumentException('Couldnt check requirement');
         }
