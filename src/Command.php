@@ -508,9 +508,6 @@ abstract class Command extends BaseCommand
 
     /**
      * Check if a executable is in $PATH.
-     *
-     * @param string $requirement
-     * @return string
      */
     protected function checkWhichPath(string $requirement): string
     {
@@ -540,7 +537,7 @@ abstract class Command extends BaseCommand
             $instance = $this->laravel->make($requirement);
             $error = $this->laravel->call($instance);
         } elseif ($isString) {
-            $error = $this->checkWhichPath($requirement)?: '';
+            $error = $this->checkWhichPath($requirement) ?: '';
         } else {
             throw new InvalidArgumentException('Couldnt check requirement');
         }
