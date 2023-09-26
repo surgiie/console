@@ -23,13 +23,19 @@
         "test": "vendor/bin/pest tests -c phpunit.xml.dist",
         "test-coverage": "export XDEBUG_MODE=coverage && vendor/bin/pest tests -c phpunit.xml.dist --coverage"
     },
+    "repositories": [
+        {
+            "type": "vcs",
+            "url": "https://github.com/jals-es/surgiie-transformer.git"
+        }
+    ],
     "require": {
         "php": "^8.0.2",
         "illuminate/console": "^10.0",
         "illuminate/validation": "^10.0",
         "nunomaduro/termwind": "^1.3",
         "surgiie/blade": "^2.0",
-        "surgiie/transformer": "^0.1.0",
+        "surgiie/transformer": "dev-master",
         "spatie/once": "^3.1",
         "vlucas/phpdotenv": "^5.5",
         "spatie/invade": "^1.1",
