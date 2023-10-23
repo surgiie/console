@@ -166,43 +166,6 @@ protected function transformersAfterValidation() : array
 
 * All options with "date" in their name, are automatically converted to `\Carbon\Carbon` instances.
 
-### Get Or Ask For Input
-
-Get the value of an input or option or ask the user to input it if empty:
-
-```php
-
-<?php
-namespace App\Console\Commands;
-
-use Surgiie\Console\Command;
-
-class ExampleCommand extends Command
-{
-
-    protected $signature = "example {--name=}";
-
-    public function handle(): int
-    {
-        // user will be asked if --name was not passed/set:
-        $something = $this->getOrAskForInput("name")
-
-        $something = $this->getOrAskForInput("name", [
-            // can use with validation:
-            'rules'=> ['required', 'max:20'],
-            // transformer args/options before validation:
-            'transformers'=> ['trim', 'strtoupper'],
-            // transform args/options after validation
-            'transformersAfterValidation'=> ['trim', 'strtoupper'],
-            // have user confirm by asking for value twice until values match:
-            'confirm'=>true,
-            // hide input
-            'secret'=>true,
-        ]);
-
-}
-
-```
 
 ### Check Requirements
 Provide a list of requirements before the handle is called:
@@ -277,48 +240,29 @@ public function bladeCompiledPath(): string
 
 
 
-### Run Tasks Concurrently With A Loader
-To give users of your a better visual experience for tasks, you may desire to show a nice spinner animation, Note that in order to achieve a spinner animation while running the task, 2 child PHP processes are used via [spatie/fork](https://github.com/spatie/fork), one process is for the spinner animation and one for the task function you pass in. This relies on escape sequences and the php `pcntl` extenion. This feature is only supported on unix based os's and on windows, this will not run the task concucrrently.
+### Long Running Tasks
+
+To give a better visual experience for long running tasks, you can use the `runTask` method:
 
 ```php
-$task = $this->runTask("Doing stuff...", function($task){
+$this->runTask("Doing stuff", function($task){
     sleep(4); // simulating stuff.
 
     return true; // return whether task succeeded or not.
-});
 
-if($task->succesful()){
-    // do stuff.
-}
+}, spinner: true); // show spinner while task is running.
 ```
 
-There is 1 annoying caveat about this and that is since the task is executed in a child process, it won't be able to directly change any variables from the parent scope even if with `use` keyword to inherit parent scope. Meaning, something like this wont work:
+**Note** - In order to show a animated spinner, the pcntl PHP extension must be installed. When this extension is not available, a static version of the spinner will appear instead.
 
+#### Custom Task Finished Text
+
+When the task is completed, you can customize text shown the task has finished:
 ```php
-$data = [];
-$this->runTask("Doing stuff...", function($task) use (&$data){
-    $data['new_value'] = 'foobar';
-    return true;
-});
-dd($data); // still empty [] array. :/
+$this->runTask("Doing stuff", function($task){
+    sleep(4); // simulating stuff.
+}, finishedText: "Finished doing stuff");
 ```
-
-To get around this limitation, you may use the `remember` method on the task object passed into the callback to persist any serializable data:
-
-```php
-$data = [];
-$task = $this->runTask("Doing stuff....", function($task){
-    $task->remember(['foo'=>'bar']);
-    return true;
-});
-dd($task->data()); // ['foo'=>'bar']
-```
-
-This works by using `serialize` on the data and writing it to a temporary file within your application's storage directory then calls `unserialize` on the data back in the parent process.
-
-
-**Note** If prefer not to run tasks concurrently or with a spinner as mentioned above, this functionality can be disabled with `Surgiie\Console\Command::disableConcurrentTasks()`. This is desired in tests as it prevents overhead when testing commands.
-
 
 
 ## Call Succeeded/Failed Functions Automatically

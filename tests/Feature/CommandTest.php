@@ -59,17 +59,13 @@ it('validates options and arguments', function () {
 it('can run task', function () {
     $command = new class extends ConsoleCommand
     {
-        public $succeed = false;
-
         protected $signature = 'example';
 
         public function handle()
         {
-            $task = $this->runTask('Doing something', function () {
+            $this->succeeded = $this->runTask('Doing something', function () {
                 return true;
             });
-
-            $this->succeeded = $task->succeeded();
         }
     };
 
@@ -90,45 +86,6 @@ it('can run task', function () {
 
     $command->run(new ArrayInput([]), $outputMock);
     expect($command->succeeded)->toBeTrue();
-});
-
-it('can run task with data', function () {
-    $command = new class extends ConsoleCommand
-    {
-        protected $signature = 'example';
-
-        public function handle()
-        {
-            $task = $this->runTask('Doing something', function ($task) {
-                $task->remember(['foo' => 'bar']);
-
-                return true;
-            });
-
-            file_put_contents(test_mock_file_path('task-data'), json_encode($task->data()));
-        }
-    };
-
-    $outputMock = m::mock(OutputStyle::class);
-
-    $command->setOutput($outputMock);
-
-    $this->container->bind(OutputStyle::class, function () use ($outputMock) {
-        return $outputMock;
-    });
-
-    $command->setLaravel($this->container);
-
-    $outputMock
-        ->shouldReceive('isDecorated')
-        ->andReturn(true)
-        ->shouldReceive('write')
-        ->shouldReceive('writeln')
-        ->andReturn('Finished - [Doing Something]');
-
-    $command->run(new ArrayInput([]), $outputMock);
-
-    expect(json_decode(file_get_contents(test_mock_file_path('task-data')), true))->toBe(['foo' => 'bar']);
 });
 
 it('can have transformers', function () {
@@ -241,129 +198,6 @@ it('can have arbitrary options', function () {
 
     expect($command->getData()->all())->toBe(['a' => '1', 'b' => '2']);
     expect($command->getArbitraryData()->all())->toBe(['c' => '3', 'd' => '4']);
-});
-
-it('can ask for input if option or argument is not set.', function () {
-    $command = new class extends ConsoleCommand
-    {
-        protected $signature = 'example {--foo=}';
-
-        public function handle()
-        {
-            $this->getOrAskForInput('foo');
-        }
-    };
-
-    $input = new ArrayInput([]);
-
-    $outputStyle = m::mock(OutputStyle::class.'[ask]', [$input, $output = new BufferedOutput()]);
-    $outputStyle->shouldReceive('ask')->once()->andReturn('Bar');
-
-    $this->container->bind(OutputStyle::class, function () use ($outputStyle) {
-        return $outputStyle;
-    });
-    $command = new $command;
-    $command->setLaravel($this->container);
-    $command->setOutput($outputStyle);
-
-    $command->run($input, $outputStyle);
-
-    $output = trim($output->fetch());
-    expect($command->getData('foo'))->toBe('Bar');
-});
-
-it('can confirm ask for input.', function () {
-    $command = new class extends ConsoleCommand
-    {
-        protected $signature = 'example {--foo=}';
-
-        public function handle()
-        {
-            $this->getOrAskForInput('foo', ['confirm' => true]);
-        }
-    };
-
-    $input = new ArrayInput([]);
-
-    $outputStyle = m::mock(OutputStyle::class.'[ask]', [$input, $output = new BufferedOutput()]);
-    $outputStyle->shouldReceive('ask')->twice()->andReturn('Bar');
-
-    $this->container->bind(OutputStyle::class, function () use ($outputStyle) {
-        return $outputStyle;
-    });
-    $command = new $command;
-    $command->setLaravel($this->container);
-    $command->setOutput($outputStyle);
-
-    $command->run($input, $outputStyle);
-
-    $output = $output->fetch();
-
-    expect($command->getData('foo'))->toBe('Bar');
-});
-
-it('can ask for input and validate', function () {
-    $command = new class extends ConsoleCommand
-    {
-        protected $signature = 'example {--dooms-day=}';
-
-        public function handle()
-        {
-            $this->getOrAskForInput('dooms-day', [
-                'rules' => ['date'],
-            ]);
-        }
-    };
-
-    $input = new ArrayInput([]);
-
-    $outputStyle = m::mock(OutputStyle::class.'[ask]', [$input, $output = new BufferedOutput()]);
-    $outputStyle->shouldReceive('ask')->once()->andReturn('Bar');
-
-    $this->container->bind(OutputStyle::class, function () use ($outputStyle) {
-        return $outputStyle;
-    });
-    $command = new $command;
-    $command->setLaravel($this->container);
-    $command->setOutput($outputStyle);
-
-    $command->run($input, $outputStyle);
-
-    $output = $output->fetch();
-    expect($output)->toContain('ERROR  The dooms day input is not a valid date.');
-    expect($command->getData('foo'))->toBeNull();
-});
-
-it('can ask for input and transform', function () {
-    $command = new class extends ConsoleCommand
-    {
-        protected $signature = 'example {--number=}';
-
-        public function handle()
-        {
-            $this->getOrAskForInput('number', [
-                'transformers' => ['number' => 'intval'],
-                'rules' => ['numeric'],
-            ]);
-        }
-    };
-
-    $input = new ArrayInput([]);
-
-    $outputStyle = m::mock(OutputStyle::class.'[ask]', [$input, $output = new BufferedOutput()]);
-    $outputStyle->shouldReceive('ask')->once()->andReturn('1');
-
-    $this->container->bind(OutputStyle::class, function () use ($outputStyle) {
-        return $outputStyle;
-    });
-    $command = new $command;
-    $command->setLaravel($this->container);
-    $command->setOutput($outputStyle);
-
-    $command->run($input, $outputStyle);
-
-    expect($command->getData('number'))->toBe(1);
-    expect($command->getData('number'))->toBeInt();
 });
 
 it('can compile files with blade', function () {

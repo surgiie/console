@@ -3,7 +3,6 @@
 use Illuminate\Container\Container;
 use Illuminate\Filesystem\Filesystem;
 use Mockery as m;
-use Surgiie\Console\Command;
 use Surgiie\Console\Tests\TestCase;
 
 /*
@@ -18,9 +17,6 @@ use Surgiie\Console\Tests\TestCase;
 */
 
 uses(TestCase::class)
-    ->beforeAll(function () {
-        Command::disableConcurrentTasks();
-    })
     ->afterAll(function () {
         $fs = new Filesystem;
         $fs->deleteDirectory(test_mock_file_path());

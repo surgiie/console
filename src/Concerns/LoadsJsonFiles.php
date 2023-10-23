@@ -41,7 +41,7 @@ trait LoadsJsonFiles
 
         $error = json_last_error();
 
-        if (JSON_ERROR_NONE !== $error) {
+        if ($error !== JSON_ERROR_NONE) {
             throw new JsonException($this->formatJsonParseError(json_last_error()));
         }
 

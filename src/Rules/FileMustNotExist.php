@@ -14,7 +14,7 @@ class FileMustNotExist implements InvokableRule
     /**
      * Construct new FileMustNotExist instance.
      */
-    public function __construct(?string $error = null)
+    public function __construct(string $error = null)
     {
         if (! is_null($error)) {
             $this->error = $error;

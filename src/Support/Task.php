@@ -172,7 +172,7 @@ class Task
                         $this->writeStateFile($this->taskData);
 
                         return $result;
-                    } catch(\Throwable $e) {
+                    } catch (\Throwable $e) {
                         $this->removeConcurrentTaskFile();
                         $this->removeConcurrentTaskStateFile();
 

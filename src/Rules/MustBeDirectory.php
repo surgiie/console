@@ -14,7 +14,7 @@ class MustBeDirectory implements InvokableRule
     /**
      * Construct new MustBeDirectory instance.
      */
-    public function __construct(?string $error = null)
+    public function __construct(string $error = null)
     {
         if (! is_null($error)) {
             $this->error = $error;

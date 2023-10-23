@@ -8,6 +8,7 @@ use Closure;
 use Illuminate\Console\Command as LaravelCommand;
 use Illuminate\Console\Contracts\NewLineAware;
 use Illuminate\Console\OutputStyle;
+use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Filesystem\Filesystem;
 use Illuminate\Support\Collection;
 use Illuminate\Translation\FileLoader;
@@ -15,6 +16,7 @@ use Illuminate\Translation\Translator;
 use Illuminate\Validation\Factory as ValidatorFactory;
 use Illuminate\Validation\Validator;
 use InvalidArgumentException;
+use Laravel\Prompts\Spinner;
 use LaravelZero\Framework\Commands\Command as LaravelZeroCommand;
 use ReflectionException;
 use Surgiie\Blade\Blade;
@@ -22,7 +24,6 @@ use Surgiie\Console\Concerns\FromPropertyOrMethod;
 use Surgiie\Console\Exceptions\ExitException;
 use Surgiie\Console\Exceptions\FailedRequirementException;
 use Surgiie\Console\Support\Console\View\Factory;
-use Surgiie\Console\Support\Task;
 use Surgiie\Transformer\Concerns\UsesTransformer;
 use Surgiie\Transformer\DataTransformer;
 use Symfony\Component\Console\Input\ArrayInput;
@@ -30,6 +31,7 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\StringInput;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Process\Process;
+
 use function Termwind\render;
 use function Termwind\renderUsing;
 
@@ -94,31 +96,9 @@ abstract class Command extends BaseCommand
     }
 
     /**
-     * Set that tasks do not run concurrently.
-     *
-     * @return void
-     */
-    public static function disableConcurrentTasks()
-    {
-        static::$concurrentTasks = false;
-    }
-
-    /**
-     * Set that tasks run concurrently.
-     *
-     * @return void
-     */
-    public static function enableConcurrentTasks()
-    {
-        static::$concurrentTasks = true;
-    }
-
-    /**
      * Get the console view components instance.
-     *
-     * @return \Surgiie\Console\Support\Console\View\Factory;
      */
-    public function consoleViewComponents()
+    public function consoleViewComponents(): Factory
     {
         return $this->components;
     }
@@ -185,59 +165,14 @@ abstract class Command extends BaseCommand
     }
 
     /**
-     * Clear terminal line if the terminal supports escape sequences.
-     */
-    public function clearTerminalLine(): void
-    {
-        if ($this->output->isDecorated()) {
-            // Move the cursor to the beginning of the line
-            $this->output->write("\x0D");
-            // Erase line.
-            $this->output->write("\x1B[2K");
-        }
-    }
-
-    /**
-     * Hide terminal cursor if the terminal supports escape sequences.
-     */
-    public function hideCursor(): void
-    {
-        if ($this->output->isDecorated()) {
-            $this->output->write("\e[?25l");
-        }
-    }
-
-    /**
-     * Unhide terminal cursor if the terminal supports escape
-     * sequences and assuming the cursor is currently hidden.
-     */
-    public function unhideCursor(): void
-    {
-        if ($this->output->isDecorated()) {
-            $this->output->write("\e[?25h");
-        }
-    }
-
-    /**
-     * Erase previous terminal line if the terminal supports escape sequences.
-     */
-    public function erasePreviousLine(): void
-    {
-        if ($this->output->isDecorated()) {
-            $this->output->write("\e[1A\e[K");
-        }
-    }
-
-    /**
      * Get a cached value from the cache array or set it in cache with the given callback.
      *
-     * @param  \Closure  $createWith
      * @return mixed
      */
-    public function fromArrayCache(string $key, ?Closure $createWith = null)
+    public function fromArrayCache(string $key, Closure $createWith = null)
     {
         if (! $this->hasArrayCacheValue($key)) {
-            return  $this->cache[$key] = $createWith();
+            return $this->cache[$key] = $createWith();
         }
 
         return $this->cache[$key] ?? null;
@@ -343,7 +278,7 @@ abstract class Command extends BaseCommand
      * @param  mixed  $default
      * @return mixed
      */
-    public function getData(?string $key = null, $default = null)
+    public function getData(string $key = null, $default = null)
     {
         if (is_null($key)) {
             return $this->data;
@@ -358,7 +293,7 @@ abstract class Command extends BaseCommand
      * @param  mixed  $default
      * @return mixed
      */
-    public function getArbitraryData(?string $key = null, $default = null)
+    public function getArbitraryData(string $key = null, $default = null)
     {
         if (is_null($key)) {
             return $this->arbitraryData;
@@ -368,32 +303,26 @@ abstract class Command extends BaseCommand
     }
 
     /**
-     * Check if the pctnl extension is loaded.
+     * Run a long running task callback.
      */
-    public function pctnlIsLoaded(): bool
+    public function runTask(string $title = '', Closure $task = null, string $finishedText = '', bool $spinner = false)
     {
-        return extension_loaded('pcntl');
-    }
+        $finishedText = $finishedText ?: $title;
 
-    /**
-     * Run a new command task.
-     */
-    public function runTask(string $title = '', Closure $task = null, string $finishedText = ''): Task
-    {
-        $task = $this->laravel->make(Task::class, ['title' => $title, 'command' => $this, 'callback' => $task]);
-
-        if (static::$concurrentTasks == false || ! $this->pctnlIsLoaded()) {
-            $task->runNonConcurrently();
+        if ($spinner) {
+            $result = (new Spinner($title))->spin(
+                $task,
+                $title,
+            );
         } else {
-            $task->run();
+            $result = invade((new Spinner($title)))->renderStatically($task);
         }
 
-        $finishedText = $finishedText ?: $title;
         $this->output->writeln(
-            "  $finishedText: ".($task->succeeded() ? '<info>✓</info>' : '<error>failed</error>')
+            "  $finishedText: ".($result !== false ? '<info>Success</info>' : '<error>Failed</error>')
         );
 
-        return $task;
+        return $result;
     }
 
     /**
@@ -463,50 +392,6 @@ abstract class Command extends BaseCommand
     }
 
     /**
-     * Ask for input with the given name or ask user for it if empty.
-     */
-    protected function getOrAskForInput(string $name, array $options = []): string
-    {
-        $input = $this->data->get($name);
-
-        if (! empty($input)) {
-            return $input;
-        }
-
-        $secret = $options['secret'] ?? false;
-        $confirm = $options['confirm'] ?? false;
-
-        $method = $secret ? 'secret' : 'ask';
-        $label = $options['label'] ?? str_replace(['_', '-'], [' ', ' '], $name);
-
-        $input = $this->components->$method("What is the $label?");
-
-        $input = $this->transform($input, $options['transformers'] ?? []);
-
-        $this->validate(
-            data: [$name => $input],
-            rules: [$name => $options['rules'] ?? []],
-            messages: $options['messages'] ?? [],
-            attributes: $options['attributes'] ?? [],
-            isUserInput: true
-        );
-
-        if ($confirm) {
-            $confirmInput = $this->components->$method("Confirm $label:");
-
-            while ($input != $confirmInput) {
-                $confirmInput = $this->components->$method('Confirmation doesnt match, try again:');
-            }
-        }
-
-        $input = $this->transform($input, $options['transformersAfterValidation'] ?? []);
-
-        $this->data->put($name, $input);
-
-        return $input;
-    }
-
-    /**
      * Check if a executable is in $PATH.
      */
     protected function checkWhichPath(string $requirement): string
@@ -519,11 +404,31 @@ abstract class Command extends BaseCommand
     }
 
     /**
+     * Run the console command.
+     */
+    public function run(InputInterface $input, OutputInterface $output): int
+    {
+        $this->output = $output instanceof OutputStyle ? $output : $this->laravel->make(
+            OutputStyle::class, ['input' => $input, 'output' => $output]
+        );
+
+        $this->components = $this->laravel->make(Factory::class, ['output' => $this->output]);
+
+        if ($this->laravel instanceof Application) {
+            $this->configurePrompts($input);
+        }
+
+        try {
+            return \Symfony\Component\Console\Command\Command::run(
+                $this->input = $input, $this->output
+            );
+        } finally {
+            $this->untrap();
+        }
+    }
+
+    /**
      * Check if a dependency is installed or if the given requirement passes..
-     *
-     * @param  mixed  $requirement
-     *
-     * @throws \Surgiie\Console\Exceptions\FailedRequirementException
      */
     protected function checkRequirement($requirement)
     {
@@ -549,8 +454,6 @@ abstract class Command extends BaseCommand
 
     /**
      * Execute the command.
-     *
-     * @return int
      */
     protected function execute(InputInterface $input, OutputInterface $output)
     {
@@ -609,6 +512,7 @@ abstract class Command extends BaseCommand
         if ($status == 0 && method_exists($this, 'succeeded')) {
             $this->laravel->call([$this, 'succeeded']);
         }
+
         if ($status >= 1 && method_exists($this, 'failed')) {
             $this->laravel->call([$this, 'failed']);
         }
@@ -618,8 +522,6 @@ abstract class Command extends BaseCommand
 
     /**
      * Interact with the user before validating the input.
-     *
-     * @return void
      */
     protected function interact(InputInterface $input, OutputInterface $output)
     {
@@ -658,13 +560,8 @@ abstract class Command extends BaseCommand
 
     /**
      * Create a new validator instance.
-     *
-     * @param  array  $rules
-     * @param  array  $messages
-     * @param  array  $attributes
-     * @return \Illuminate\Validation\Validator
      */
-    protected function validator(array $data, ?array $rules = null, ?array $messages = null, ?array $attributes = null)
+    protected function validator(array $data, array $rules = null, array $messages = null, array $attributes = null): Validator
     {
         $loader = new FileLoader(new Filesystem, $this->getValidationLangPath());
 
@@ -683,40 +580,37 @@ abstract class Command extends BaseCommand
     /**
      * Validate the current data for options and arguments.
      */
-    protected function validate(array $data, ?array $rules = null, ?array $messages = null, ?array $attributes = null, bool $isUserInput = false): void
+    protected function validate(array $data, array $rules = null, array $messages = null, array $attributes = null, string $type = 'option'): void
     {
         $validator = $this->validator($data, $rules, $messages, $attributes);
 
         if ($validator->fails()) {
-            $this->displayValidationErrors($validator, $isUserInput);
+            $this->displayValidationErrors($validator, $type);
             $this->exit();
         }
     }
 
     /**
      * Display the validation errors that exist on the given validator.
-     *
-     *
-     * @return void
      */
-    protected function displayValidationErrors(Validator $validator, bool $isUserInput = false)
+    protected function displayValidationErrors(Validator $validator, string $type = 'option')
     {
         foreach ($validator->messages()->getMessages() as $name => $errors) {
             $isOption = $this->hasOption($name);
             $isArgument = $this->hasArgument($name);
 
-            $type = 'option';
+            $parsedType = 'option';
 
-            if ($isUserInput) {
+            if ($type == 'input') {
                 $name = str_replace(['-', '_'], [' ', ' '], $name);
-                $type = 'input';
+                $parsedType = 'input';
             } elseif ($isOption || $this->arbitraryData->has($name)) {
                 $name = '--'.$name;
             } elseif ($isArgument) {
-                $type = 'argument';
+                $parsedType = 'argument';
             }
 
-            $this->components->error(str_replace([':name', ':type'], [$name, $type], $errors[0]));
+            $this->components->error(str_replace([':name', ':type'], [$name, $parsedType], $errors[0]));
         }
     }
 
