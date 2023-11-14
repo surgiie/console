@@ -138,6 +138,7 @@ class ExampleCommand extends Command
 
 ```
 
+**Note** Arbitrary options are parsed as is, without any validation or transformation, so ensure you run `escapeshellarg` or validate on any values that will be used in a shell command.
 
 ### Argument & Option Transformation/Formatting
 
@@ -227,7 +228,7 @@ An exented version of the blade engine is available to compile any textual file:
 
 public function handle()
 {
-    $contents = $this->compile('/some/file', ['var'=>'example']);
+    $contents = $this->render('/some/file', ['var'=>'example']);
 }
 
 // set a custom path for compiled/cached files. Default is /tmp/.compiled or tests/.compiled when running unit tests

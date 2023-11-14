@@ -49,41 +49,16 @@ abstract class Command extends BaseCommand
 {
     use FromPropertyOrMethod, UsesTransformer;
 
-    /**
-     * The merged options and arguments.
-     */
     protected Collection $data;
 
-    /**
-     * Cached array for saving values repeatedly called.
-     */
     protected array $cache = [];
 
-    /**
-     * The command tokens passed in the terminal as a string.
-     */
     protected string $commandTokensString = '';
 
-    /**
-     * The options that were arbitrary.
-     */
     protected Collection $arbitraryData;
 
-    /**
-     * Whether tasks are executed concurrently.
-     *
-     * @var bool
-     */
-    protected static $concurrentTasks = true;
-
-    /**
-     * Whether to cast date inputs to carbon instances.
-     */
     protected bool $castDatesToCarbon = true;
 
-    /**
-     * Construct a new command instance.
-     */
     public function __construct()
     {
         parent::__construct();
@@ -95,53 +70,31 @@ abstract class Command extends BaseCommand
         }
     }
 
-    /**
-     * Get the console view components instance.
-     */
     public function consoleViewComponents(): Factory
     {
         return $this->components;
     }
 
-    /**
-     * Check if a class uses a given trait.
-     *
-     * @param  mixed  $class
-     */
     protected function classUsesTrait($class, string $trait): bool
     {
         return once(fn () => array_key_exists($trait, class_uses($class)));
     }
 
-    /**
-     * Throw an ExitException.
-     *
-     * @throws \Surgiie\Console\Exceptions\ExitException
-     */
     protected function exit(string $error = '', int $code = 1, string $level = 'error'): void
     {
         throw new ExitException($error, $code, $level);
     }
 
-    /**
-     * The transformer or casts to run on command data.
-     */
     protected function transformers(): array
     {
         return [];
     }
 
-    /**
-     * The transformer or casts to run on command data after validation.
-     */
     protected function transformersAfterValidation(): array
     {
         return [];
     }
 
-    /**
-     * Renders a console view with termwind renderer.
-     */
     protected function consoleView(string $view, array $data, int $verbosity = OutputInterface::VERBOSITY_NORMAL): void
     {
         renderUsing($this->output);
@@ -153,22 +106,14 @@ abstract class Command extends BaseCommand
             $path = __DIR__."/resources/views/$view.php";
         }
 
-        render((string) $this->compile($path, $data, cache: false), $verbosity);
+        render((string) $this->render($path, $data, cache: false), $verbosity);
     }
 
-    /**
-     * Get the output style instance.
-     */
     public function getOutputStyle(): OutputStyle
     {
         return $this->output;
     }
 
-    /**
-     * Get a cached value from the cache array or set it in cache with the given callback.
-     *
-     * @return mixed
-     */
     public function fromArrayCache(string $key, Closure $createWith = null)
     {
         if (! $this->hasArrayCacheValue($key)) {
@@ -178,25 +123,16 @@ abstract class Command extends BaseCommand
         return $this->cache[$key] ?? null;
     }
 
-    /**
-     * Get a cached value from the cache array.
-     */
     public function hasArrayCacheValue(string $key): bool
     {
         return array_key_exists($key, $this->cache);
     }
 
-    /**
-     * Check if the current os is windows.
-     */
     public function isWindows(): bool
     {
         return strtoupper(substr(PHP_OS, 0, 3)) === 'WIN';
     }
 
-    /**
-     * Return path compiled directory used for the blade engine.
-     */
     protected function bladeCompiledPath(): string
     {
         // use tests directory when running unit tests in laravel/laravel-zero apps.
@@ -204,50 +140,38 @@ abstract class Command extends BaseCommand
             return base_path('tests/.compiled');
         }
 
-        // otherwirse use the tmp directory.
-        if ($this->isWindows()) {
-            $tmp = getenv('TEMP');
-        } else {
-            $tmp = '/tmp';
-        }
-
-        return rtrim($tmp, DIRECTORY_SEPARATOR).DIRECTORY_SEPARATOR.'.compiled';
+        return rtrim(sys_get_temp_dir(), DIRECTORY_SEPARATOR).DIRECTORY_SEPARATOR.'.compiled';
     }
 
-    /**
-     * Return a blade engine for rendering textual files.
-     */
     protected function blade(): Blade
     {
         $blade = $this->fromArrayCache('blade', fn () => new Blade(
             container: $this->laravel,
-            filesystem: new Filesystem,
         ));
 
-        $compilePath = $this->bladeCompiledPath();
-
-        $blade->setCompiledPath($compilePath);
+        Blade::setCachePath($this->bladeCompiledPath());
 
         return $blade;
     }
 
-    /**
-     * Compile a textual file with blade using the given path and data.
-     */
     public function compile(string $path, array $data = [], bool $cache = true): string
+    {
+        trigger_error('The compile method will be removed in a future release, use render method.', E_USER_WARNING);
+
+        if (! $cache) {
+            Blade::deleteCacheDirectory();
+        }
+
+        return $this->render($path, $data);
+    }
+
+    public function render(string $path, array $data = []): string
     {
         $blade = $this->blade();
 
-        $result = $blade->compile($path, $data, cache: $cache);
-
-        return $result;
+        return $blade->render($path, $data);
     }
 
-    /**
-     * Output a message using the view console components.
-     *
-     * @return void
-     */
     public function message(string $title, string $content, string $bg = 'gray', string $fg = 'white')
     {
         $this->consoleView('line', [
@@ -259,9 +183,6 @@ abstract class Command extends BaseCommand
         ]);
     }
 
-    /**
-     * Print a debug view console component message if a debug option exists on the command.
-     */
     protected function debug(string $message, bool $clearLine = false): void
     {
         if ($this->hasOption('debug') && $this->data->get('debug')) {
@@ -272,12 +193,6 @@ abstract class Command extends BaseCommand
         }
     }
 
-    /**
-     * Return the merged options and arguments data collection or a value from it if a key is passed.
-     *
-     * @param  mixed  $default
-     * @return mixed
-     */
     public function getData(string $key = null, $default = null)
     {
         if (is_null($key)) {
@@ -287,12 +202,6 @@ abstract class Command extends BaseCommand
         return $this->data->get($key, $default);
     }
 
-    /**
-     * Return the arbitrary data collection or a value from it if a key is passed.
-     *
-     * @param  mixed  $default
-     * @return mixed
-     */
     public function getArbitraryData(string $key = null, $default = null)
     {
         if (is_null($key)) {
@@ -302,9 +211,6 @@ abstract class Command extends BaseCommand
         return $this->arbitraryData->get($key, $default);
     }
 
-    /**
-     * Run a long running task callback.
-     */
     public function runTask(string $title = '', Closure $task = null, string $finishedText = '', bool $spinner = false)
     {
         $finishedText = $finishedText ?: $title;
@@ -325,11 +231,6 @@ abstract class Command extends BaseCommand
         return $result;
     }
 
-    /**
-     * Parse an array input interface for tokens.
-     *
-     * This will only be the case when running tests.
-     */
     protected function parseArrayInputInterfaceTokens(InputInterface $input): array
     {
         $tokens = [];
@@ -347,9 +248,6 @@ abstract class Command extends BaseCommand
         return $tokens;
     }
 
-    /**
-     * Check if an option was passed in the command call.
-     */
     protected function optionWasPassed(string $name): bool
     {
         $name = ltrim($name, '--');
@@ -357,9 +255,6 @@ abstract class Command extends BaseCommand
         return str_contains($this->commandTokensString, $name);
     }
 
-    /**
-     * Initialize the command for execution.
-     */
     protected function initialize(InputInterface $input, OutputInterface $output): void
     {
         try {
@@ -391,9 +286,6 @@ abstract class Command extends BaseCommand
         }
     }
 
-    /**
-     * Check if a executable is in $PATH.
-     */
     protected function checkWhichPath(string $requirement): string
     {
         $process = (new Process(['which', $requirement]));
@@ -403,9 +295,6 @@ abstract class Command extends BaseCommand
         return $process->getOutput() == '' ? "This command requires $requirement." : '';
     }
 
-    /**
-     * Run the console command.
-     */
     public function run(InputInterface $input, OutputInterface $output): int
     {
         $this->output = $output instanceof OutputStyle ? $output : $this->laravel->make(
@@ -427,9 +316,6 @@ abstract class Command extends BaseCommand
         }
     }
 
-    /**
-     * Check if a dependency is installed or if the given requirement passes..
-     */
     protected function checkRequirement($requirement)
     {
         $isString = is_string($requirement);
@@ -452,9 +338,6 @@ abstract class Command extends BaseCommand
         }
     }
 
-    /**
-     * Execute the command.
-     */
     protected function execute(InputInterface $input, OutputInterface $output)
     {
         $this->components = $this->laravel->make(Factory::class, ['output' => $this->output]);
@@ -520,9 +403,6 @@ abstract class Command extends BaseCommand
         return $status;
     }
 
-    /**
-     * Interact with the user before validating the input.
-     */
     protected function interact(InputInterface $input, OutputInterface $output)
     {
         parent::interact($input, $output);
@@ -542,25 +422,16 @@ abstract class Command extends BaseCommand
         });
     }
 
-    /**
-     * Get the path to directory holding the lang file for validation.
-     */
     protected function getValidationLangPath(): string
     {
         return __DIR__.'/resources/lang';
     }
 
-    /**
-     * Get the locale to use for validation.
-     */
     protected function getValidationLangLocale(): string
     {
         return 'en';
     }
 
-    /**
-     * Create a new validator instance.
-     */
     protected function validator(array $data, array $rules = null, array $messages = null, array $attributes = null): Validator
     {
         $loader = new FileLoader(new Filesystem, $this->getValidationLangPath());
@@ -577,9 +448,6 @@ abstract class Command extends BaseCommand
         );
     }
 
-    /**
-     * Validate the current data for options and arguments.
-     */
     protected function validate(array $data, array $rules = null, array $messages = null, array $attributes = null, string $type = 'option'): void
     {
         $validator = $this->validator($data, $rules, $messages, $attributes);
@@ -590,9 +458,6 @@ abstract class Command extends BaseCommand
         }
     }
 
-    /**
-     * Display the validation errors that exist on the given validator.
-     */
     protected function displayValidationErrors(Validator $validator, string $type = 'option')
     {
         foreach ($validator->messages()->getMessages() as $name => $errors) {
@@ -614,9 +479,6 @@ abstract class Command extends BaseCommand
         }
     }
 
-    /**
-     * Execute the command.
-     */
     private function executeCommand(): int
     {
         $method = method_exists($this, 'handle') ? 'handle' : '__invoke';

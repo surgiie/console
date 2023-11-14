@@ -2,18 +2,13 @@
 
 namespace Surgiie\Console\Rules;
 
-use Illuminate\Contracts\Validation\InvokableRule;
+use Closure;
+use Illuminate\Contracts\Validation\ValidationRule;
 
-class MustBeDirectory implements InvokableRule
+class MustBeDirectory implements ValidationRule
 {
-    /**
-     * The error message when validation fails.
-     */
     protected string $error = 'The :name :type directory does not exist.';
 
-    /**
-     * Construct new MustBeDirectory instance.
-     */
     public function __construct(string $error = null)
     {
         if (! is_null($error)) {
@@ -21,15 +16,7 @@ class MustBeDirectory implements InvokableRule
         }
     }
 
-    /**
-     * Check if the validation rule passes.
-     *
-     * @param  string  $attribute
-     * @param  mixed  $value
-     * @param  \Closure  $fail
-     * @return void
-     */
-    public function __invoke($attribute, $value, $fail)
+    public function validate(string $attribute, mixed $value, Closure $fail): void
     {
         if (! is_dir($value)) {
             $fail($this->error);

@@ -200,7 +200,7 @@ it('can have arbitrary options', function () {
     expect($command->getArbitraryData()->all())->toBe(['c' => '3', 'd' => '4']);
 });
 
-it('can compile files with blade', function () {
+it('can render files with blade', function () {
     $command = new class extends ConsoleCommand
     {
         protected $signature = 'example';
@@ -214,12 +214,12 @@ it('can compile files with blade', function () {
         {
             $testFilePath = test_mock_file_path('test-blade-file');
 
-            $contents = $this->compile($testFilePath, [
+            $contents = $this->render($testFilePath, [
                 'name' => 'Bob',
                 'favoriteFood' => 'Pizza',
                 'includeAddress' => true,
                 'dogs' => ['Rex', 'Charlie'],
-            ], cache: false);
+            ]);
 
             $this->line($contents);
         }
