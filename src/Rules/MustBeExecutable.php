@@ -2,18 +2,13 @@
 
 namespace Surgiie\Console\Rules;
 
-use Illuminate\Contracts\Validation\InvokableRule;
+use Closure;
+use Illuminate\Contracts\Validation\ValidationRule;
 
-class MustBeExecutable implements InvokableRule
+class MustBeExecutable implements ValidationRule
 {
-    /**
-     * The error message when validation fails.
-     */
     protected string $error = 'The :name :type is not executable.';
 
-    /**
-     * Construct new MustBeExecutable instance.
-     */
     public function __construct(string $error = null)
     {
         if (! is_null($error)) {
@@ -21,15 +16,7 @@ class MustBeExecutable implements InvokableRule
         }
     }
 
-    /**
-     * Check if the validation rule passes.
-     *
-     * @param  string  $attribute
-     * @param  mixed  $value
-     * @param  \Closure  $fail
-     * @return void
-     */
-    public function __invoke($attribute, $value, $fail)
+    public function validate(string $attribute, mixed $value, Closure $fail): void
     {
         if (! is_executable($value)) {
             $fail($this->error);
