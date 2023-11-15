@@ -106,7 +106,7 @@ abstract class Command extends BaseCommand
             $path = __DIR__."/resources/views/$view.php";
         }
 
-        render((string) $this->render($path, $data, cache: false), $verbosity);
+        render((string) $this->render($path, $data), $verbosity);
     }
 
     public function getOutputStyle(): OutputStyle
