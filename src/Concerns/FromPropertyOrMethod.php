@@ -6,6 +6,14 @@ use InvalidArgumentException;
 
 trait FromPropertyOrMethod
 {
+    /**
+     * Get value from a property or method on the class.
+     *
+     * @param  mixed  $default
+     * @return mixed
+     *
+     * @throws \InvalidArgumentException
+     */
     protected function fromPropertyOrMethod(string $name, $default = null)
     {
         if (property_exists($this, $name)) {

@@ -7,6 +7,9 @@ use InvalidArgumentException;
 
 trait LoadsEnvFiles
 {
+    /**
+     * Parse a dot env file into an array of variables.
+     */
     public function getEnvFileVariables(string $path): array
     {
         if (! is_file($path)) {
@@ -16,6 +19,9 @@ trait LoadsEnvFiles
         return Dotenv::parse(file_get_contents($path));
     }
 
+    /**
+     * Parse .env file and load it into the environment.
+     */
     public function loadEnvFileVariables(string $path): array
     {
         if (! is_file($path)) {

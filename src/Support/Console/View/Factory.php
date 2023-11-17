@@ -7,6 +7,15 @@ use InvalidArgumentException;
 
 class Factory extends ComponentsFactory
 {
+    /**
+     * Resolve a component when it is called dynamically.
+     *
+     * @param  string  $method
+     * @param  array  $parameters
+     * @return mixed
+     *
+     * @throws InvalidArgumentException
+     */
     public function __call($method, $parameters)
     {
         try {

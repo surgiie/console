@@ -7,6 +7,9 @@ use JsonException;
 
 trait LoadsJsonFiles
 {
+    /**
+     * Return a more human readable error message for json errors.
+     */
     protected function formatJsonParseError(string $error): string
     {
         switch ($error) {
@@ -25,6 +28,9 @@ trait LoadsJsonFiles
         }
     }
 
+    /**
+     * Loads a json file and returns the data array.
+     */
     public function loadJsonFile(string $path): array
     {
         if (! is_file($path)) {

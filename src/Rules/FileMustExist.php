@@ -7,8 +7,16 @@ use Illuminate\Contracts\Validation\ValidationRule;
 
 class FileMustExist implements ValidationRule
 {
+    /**
+     * The default error for validation failures.
+     *
+     * @param string
+     */
     protected string $error = 'The :name :type does not exist.';
 
+    /**
+     * Construct a new FileMustExist instance.
+     */
     public function __construct(string $error = null)
     {
         if (! is_null($error)) {
@@ -16,6 +24,9 @@ class FileMustExist implements ValidationRule
         }
     }
 
+    /**
+     * Validate the given value and fail with an error if it is invalid.
+     */
     public function validate(string $attribute, mixed $value, Closure $fail): void
     {
         if (! is_file($value)) {
