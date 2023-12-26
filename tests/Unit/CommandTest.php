@@ -54,8 +54,7 @@ it('merges options and arguments into data property', function () {
     ]);
 
     $command->run($input, new NullOutput);
-
-    expect($command->getData()->all())->toBe(['foo' => 'bar', 'bar' => 'baz']);
+    expect($command->getData()->all())->toBe(['bar' => 'baz', 'foo' => 'bar']);
 });
 
 it('checks requirements', function () {

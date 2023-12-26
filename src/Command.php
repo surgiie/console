@@ -494,11 +494,13 @@ abstract class Command extends BaseCommand
             );
 
             $this->data = $this->data->filter(function ($value, $name) {
-                $isArbitrary = $this->arbitraryData->has($name);
+                $isArbitrary = !$this->hasArgument($name) && $this->arbitraryData->has($name);
 
                 // update the value in case it has gone through transformation
                 if ($isArbitrary) {
                     $this->arbitraryData->put($name, $value);
+                }else{
+                    $this->arbitraryData->forget($name);
                 }
 
                 return ! $isArbitrary;
@@ -538,7 +540,7 @@ abstract class Command extends BaseCommand
     {
         parent::interact($input, $output);
 
-        $mergedData = array_merge($this->arguments(), $this->options());
+        $mergedData = array_merge($this->options(),$this->arguments());
 
         if ($this->castDatesToCarbon) {
             try {
